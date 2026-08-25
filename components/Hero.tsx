@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Button from "./ui/Button";
 
 const MARQUEE_WORDS = [
   "INFLUENCER",
@@ -119,13 +120,12 @@ const Hero = () => {
               partnerships across the UAE.
             </p>
 
-            <a
-              href="#journey"
-              className="mt-5 inline-flex items-center gap-2 rounded-full bg-black px-6 py-3 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 lg:mt-6 lg:ml-auto"
+            <Button
+              href=""
+              className="mt-5 lg:mt-6 lg:ml-auto"
             >
               Discover My Story
-              <span aria-hidden>→</span>
-            </a>
+            </Button>
           </div>
         </div>
       </div>
