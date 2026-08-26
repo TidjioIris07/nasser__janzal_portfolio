@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
+import type { MouseEventHandler } from "react";
 
 interface ServiceCardProps {
   index: string;
   title: string;
   description: string;
   image: string;
+  onClick?: MouseEventHandler<HTMLDivElement>;
 }
 
 const ServiceCard = ({
@@ -15,9 +17,11 @@ const ServiceCard = ({
   title,
   description,
   image,
+  onClick,
 }: ServiceCardProps) => {
   return (
     <div
+      onClick={onClick}
       className="
         group
         relative
@@ -31,9 +35,8 @@ const ServiceCard = ({
         sm:py-10
       "
     >
-      {/* =================================
-          MAIN CONTENT
-      ================================= */}
+      {/* MAIN CONTENT */}
+
       <div
         className="
           relative
@@ -48,9 +51,8 @@ const ServiceCard = ({
           md:gap-8
         "
       >
-        {/* =================================
-            LEFT — INDEX + TITLE
-        ================================= */}
+        {/* LEFT — INDEX + TITLE */}
+
         <div
           className="
             flex
@@ -61,7 +63,6 @@ const ServiceCard = ({
             md:items-center
           "
         >
-          {/* INDEX — NEVER DISAPPEARS */}
           <span
             className="
               shrink-0
@@ -77,7 +78,6 @@ const ServiceCard = ({
             / {index}
           </span>
 
-          {/* TITLE — FADES OUT */}
           <h3
             className="
               font-brand
@@ -97,9 +97,8 @@ const ServiceCard = ({
           </h3>
         </div>
 
-        {/* =================================
-            RIGHT — DESCRIPTION + ARROW
-        ================================= */}
+        {/* RIGHT — DESCRIPTION + ARROW */}
+
         <div
           className="
             flex
@@ -110,7 +109,6 @@ const ServiceCard = ({
             md:justify-end
           "
         >
-          {/* DESCRIPTION — FADES OUT */}
           <p
             className="
               max-w-md
@@ -126,7 +124,6 @@ const ServiceCard = ({
             {description}
           </p>
 
-          {/* ARROW — NEVER DISAPPEARS */}
           <div
             className="
               flex
@@ -142,7 +139,6 @@ const ServiceCard = ({
               text-neutral-800
               transition-all
               duration-300
-
               group-hover:border-neutral-950
               group-hover:bg-neutral-950
               group-hover:text-white
@@ -161,25 +157,24 @@ const ServiceCard = ({
         </div>
       </div>
 
-      {/* =================================
-        HOVER IMAGE
-      ================================= */}
-        <div
+      {/* HOVER IMAGE */}
+
+      <div
         className="
-            pointer-events-none
-            absolute
-            inset-0
-            z-20
-            overflow-hidden
-            opacity-0
-            transition-opacity
-            duration-500
-            ease-out
-            group-hover:opacity-100
+          pointer-events-none
+          absolute
+          inset-0
+          z-20
+          overflow-hidden
+          opacity-0
+          transition-opacity
+          duration-500
+          ease-out
+          group-hover:opacity-100
         "
-        >
+      >
         <div
-            className="
+          className="
             relative
             flex
             h-full
@@ -189,31 +184,28 @@ const ServiceCard = ({
             pl-16
             sm:pl-28
             md:pl-44
-            "
+          "
         >
-            <div
+          <div
             className="
-                relative
-                h-[calc(100%+2px)]
-                w-64
-                overflow-hidden
-                border-0
-                outline-none
-                ring-0
-                sm:w-80
-                md:w-110
+              relative
+              h-[calc(100%+2px)]
+              w-64
+              overflow-hidden
+              sm:w-80
+              md:w-110
             "
-            >
+          >
             <Image
-                src={image}
-                alt={title}
-                fill
-                sizes="
+              src={image}
+              alt={title}
+              fill
+              sizes="
                 (max-width: 640px) 256px,
                 (max-width: 768px) 320px,
                 440px
-                "
-                className="
+              "
+              className="
                 absolute
                 -inset-px
                 h-[calc(100%+2px)]!
@@ -222,19 +214,15 @@ const ServiceCard = ({
                 object-cover
                 object-top
                 scale-105
-                border-0
-                outline-none
-                ring-0
                 transition-transform
                 duration-700
                 sm:object-[center_15%]
                 group-hover:scale-100
-                "
+              "
             />
 
-            {/* LEFT IMAGE FADE */}
             <div
-                className="
+              className="
                 pointer-events-none
                 absolute
                 inset-y-0
@@ -246,12 +234,11 @@ const ServiceCard = ({
                 via-white/85
                 to-transparent
                 sm:w-16
-                "
+              "
             />
 
-            {/* RIGHT IMAGE FADE */}
             <div
-                className="
+              className="
                 pointer-events-none
                 absolute
                 inset-y-0
@@ -263,11 +250,11 @@ const ServiceCard = ({
                 via-white/85
                 to-transparent
                 sm:w-16
-                "
+              "
             />
-            </div>
+          </div>
         </div>
-        </div>
+      </div>
     </div>
   );
 };

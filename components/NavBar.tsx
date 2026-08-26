@@ -5,11 +5,25 @@ import { useEffect, useState } from "react";
 import Button from "./ui/Button";
 import LanguageSwitch from "./ui/LanguageSwitch";
 
+import { scrollToSection, showForm } from "@/utils/utils";
+
 const NAV_LINKS = [
-  { label: "The Journey", href: "#journey" },
-  { label: "Impact & Reach", href: "#impact" },
-  { label: "Partnerships", href: "#partnerships" },
-  { label: "Services", href: "#services" },
+  {
+    label: "The Journey",
+    href: "#journey",
+  },
+  {
+    label: "Impact & Reach",
+    href: "#impact",
+  },
+  {
+    label: "Partnerships",
+    href: "#partnerships",
+  },
+  {
+    label: "Services",
+    href: "#services",
+  },
 ];
 
 const SCROLL_THRESHOLD = 40;
@@ -24,7 +38,9 @@ const NavBar = () => {
 
     onScroll();
 
-    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("scroll", onScroll, {
+      passive: true,
+    });
 
     return () => {
       window.removeEventListener("scroll", onScroll);
@@ -62,7 +78,11 @@ const NavBar = () => {
             text-lg font-brand font-bold uppercase
             tracking-[0.2em]
             transition-colors duration-500
-            ${scrolled ? "text-black" : "text-white"}
+            ${
+              scrolled
+                ? "text-black"
+                : "text-white"
+            }
           `}
         >
           Nasser •
@@ -74,13 +94,17 @@ const NavBar = () => {
             <a
               key={link.href}
               href={link.href}
+              onClick={(event) => scrollToSection(event, link.href.slice(1))}
               className={`
-                text-xs font-medium uppercase
-                tracking-[0.15em]
-                transition-colors duration-500
+                text-xs
+                font-light
+                uppercase
+                tracking-wider
+                transition-colors
+                duration-300
                 ${
                   scrolled
-                    ? "text-black/60 hover:text-black"
+                    ? "text-neutral-600 hover:text-black"
                     : "text-white/80 hover:text-white"
                 }
               `}
@@ -92,7 +116,7 @@ const NavBar = () => {
 
         <div className="flex items-center gap-4">
           {/* Language switcher */}
-          <LanguageSwitch scrolled={scrolled}/>
+          <LanguageSwitch scrolled={scrolled} />
 
           {/* Socials */}
           <div className="hidden items-center gap-3 sm:flex">
@@ -142,7 +166,14 @@ const NavBar = () => {
           </div>
 
           {/* CTA */}
-          <Button href="">Send An Enquiry</Button>
+          <Button
+            onClick={(event) => {
+              event.preventDefault();
+              showForm();
+            }}
+          >
+            Send An Enquiry
+          </Button>
         </div>
       </div>
     </header>
@@ -157,8 +188,18 @@ const InstagramIcon = () => (
     stroke="currentColor"
     strokeWidth="1.8"
   >
-    <rect x="3" y="3" width="18" height="18" rx="5" />
-    <circle cx="12" cy="12" r="4" />
+    <rect
+      x="3"
+      y="3"
+      width="18"
+      height="18"
+      rx="5"
+    />
+    <circle
+      cx="12"
+      cy="12"
+      r="4"
+    />
     <circle
       cx="17.5"
       cy="6.5"

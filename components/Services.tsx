@@ -1,5 +1,6 @@
 "use client";
 
+import { showForm } from "@/utils/utils";
 import ServiceCard from "./ui/ServiceCard";
 
 interface Service {
@@ -50,7 +51,7 @@ const SERVICES: Service[] = [
 const Services = () => {
   return (
     <section
-      id="partnerships"
+      id="services"
       className="
         relative
         z-20
@@ -137,6 +138,7 @@ const Services = () => {
               title={service.title}
               description={service.description}
               image={service.image}
+              onClick={showForm}
             />
           ))}
         </div>

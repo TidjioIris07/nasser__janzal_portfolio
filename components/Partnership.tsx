@@ -1,5 +1,6 @@
 "use client";
 
+import { showForm } from "@/utils/utils";
 import Button from "./ui/Button";
 import PartnerCard from "./ui/PartnerCard";
 
@@ -213,7 +214,12 @@ const Partnership = () => {
                     </p>
                   </div>
 
-                  <Button href="">
+                  <Button
+                    onClick={(event) => {
+                        event.preventDefault();
+                        showForm();
+                    }}
+                  >
                     Request Media Kit & Rates
                   </Button>
                 </div>

@@ -4,6 +4,8 @@ import { ArrowUp, Mail, MapPin, Phone } from "lucide-react";
 
 import Button from "./ui/Button";
 
+import { scrollToSection, scrollToTop, showForm } from "@/utils/utils";
+
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
@@ -21,11 +23,11 @@ const Footer = () => {
     },
     {
       label: "Impact & Reach",
-      href: "#milestones",
+      href: "#impact",
     },
     {
       label: "Partnerships",
-      href: "#collaborations",
+      href: "#partnerships",
     },
     {
       label: "Core Services",
@@ -73,20 +75,7 @@ const Footer = () => {
 
   const location = {
     value: "Downtown Dubai, UAE",
-    icon: MapPin,
   };
-
-  // ================================
-  // Back To Top
-  // ================================
-  const handleBackToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
-
-
 
   return (
     <footer
@@ -162,7 +151,12 @@ const Footer = () => {
             </p>
 
             {/* CTA */}
-            <Button href="">
+            <Button
+                onClick={(event) => {
+                    event.preventDefault();
+                    showForm();
+                }}
+            >
               Request Media Kit & Rates
             </Button>
           </div>
@@ -203,19 +197,22 @@ const Footer = () => {
 
               <ul className="space-y-2 font-light">
                 {navigationLinks.map((link) => (
-                  <li key={link.href}>
+                    <li key={link.href}>
                     <a
-                      href={link.href}
-                      className="
+                        href={link.href}
+                        onClick={(event) =>
+                        scrollToSection(event, link.href)
+                        }
+                        className="
                         transition-colors
                         hover:text-black
-                      "
+                        "
                     >
-                      {link.label}
+                        {link.label}
                     </a>
-                  </li>
+                    </li>
                 ))}
-              </ul>
+                </ul>
             </div>
 
             {/* =========================================
@@ -358,7 +355,7 @@ const Footer = () => {
           {/* Back To Top */}
           <button
             type="button"
-            onClick={handleBackToTop}
+            onClick={scrollToTop}
             className="
               flex
               cursor-pointer
