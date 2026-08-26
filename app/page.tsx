@@ -3,6 +3,7 @@ import Impact from '@/components/Impact'
 import Journey from '@/components/Journey'
 import LogoMarquee from '@/components/LogoMarquee'
 import Partnership from '@/components/Partnership'
+import Services from '@/components/Services'
 
 const Home = () => {
   return (
@@ -12,6 +13,7 @@ const Home = () => {
       <Journey />
       <Impact />
       <Partnership />
+      <Services />
     </main>
   )
 }
