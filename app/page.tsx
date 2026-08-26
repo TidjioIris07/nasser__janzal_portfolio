@@ -1,3 +1,4 @@
+import Footer from '@/components/Footer'
 import Hero from '@/components/Hero'
 import Impact from '@/components/Impact'
 import Journey from '@/components/Journey'
@@ -14,6 +15,7 @@ const Home = () => {
       <Impact />
       <Partnership />
       <Services />
+      <Footer />
     </main>
   )
 }
