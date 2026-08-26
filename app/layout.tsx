@@ -5,6 +5,7 @@ import { Plus_Jakarta_Sans, Syncopate, Syne } from "next/font/google";
 import "./globals.css";
 
 import Preloader from "@/components/Preloader";
+import NavBar from "@/components/NavBar";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
@@ -40,6 +41,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-black text-white">
         <Preloader />
+        <NavBar/>
         {children}
       </body>
     </html>
