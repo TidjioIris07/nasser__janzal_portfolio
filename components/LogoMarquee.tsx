@@ -17,7 +17,7 @@ const LogoMarquee = () => {
   return (
     <section
       aria-label="Brands and ventures Nasser has been featured with"
-      className="relative overflow-hidden border-t border-black/[0.06] bg-white py-12"
+      className="relative overflow-hidden border-t border-b border-black/[0.06] bg-white py-16"
     >
       <p className="mb-10 text-center text-[10px] font-semibold uppercase tracking-[0.4em] text-black/40 sm:text-xs">
         As Seen In &amp; Ventures
@@ -61,8 +61,8 @@ const LogoMarquee = () => {
               <Image
                 src={`/images/${logo}.avif`}
                 alt={index < LOGOS.length ? logo : ""}
-                width={240}
-                height={100}
+                width={160}
+                height={64}
                 sizes="(max-width: 640px) 150px, (max-width: 1024px) 190px, 220px"
                 loading="lazy"
                 className="

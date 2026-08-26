@@ -1,4 +1,5 @@
 import Hero from '@/components/Hero'
+import Journey from '@/components/Journey'
 import LogoMarquee from '@/components/LogoMarquee'
 
 const Home = () => {
@@ -6,6 +7,7 @@ const Home = () => {
     <>
       <Hero />
       <LogoMarquee />
+      <Journey />
     </>
   )
 }
