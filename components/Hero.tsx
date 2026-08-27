@@ -5,6 +5,7 @@ import Image from "next/image";
 import Button from "./ui/Button";
 import { ArrowDown } from "lucide-react";
 import gsap from "gsap";
+import { scrollToSection } from "@/utils/utils";
 
 const MARQUEE_TEXT =
   "INFLUENCER • CREATOR • ENTREPRENEUR • BRAND AMBASSADOR • MEDIA PERSONALITY • PUBLIC FIGURE • LIFESTYLE • PARTNERSHIPS • EVENTS • UAE • ";
@@ -1341,7 +1342,7 @@ const Hero = () => {
                   className="will-change-transform"
                 >
                   <Button
-                    href="#journey"
+                    onClick={(event) =>scrollToSection(event, "#journey")}
                     className="
                       mt-4
                       sm:mt-6
