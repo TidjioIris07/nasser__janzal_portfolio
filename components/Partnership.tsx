@@ -156,14 +156,12 @@ const Partnership = () => {
                     <div
                         className="
                             absolute
-                            left-6
+                            left-4.5
                             top-4
                             bottom-4
-                            -ml-2.5
-                            md:ml-2.5
                             w-0.5
                             bg-neutral-300
-                            sm:left-4.25
+                            sm:left-7.5
                         "
                     />
 
