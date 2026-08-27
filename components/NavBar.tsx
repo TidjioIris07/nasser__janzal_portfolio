@@ -274,18 +274,7 @@ const NavBar = () => {
           </button>
         </div>
       </div>
-
-      {/* =========================================================
-          MOBILE MENU
-
-          IMPORTANT:
-          - No min-height
-          - No fixed viewport height
-          - No bottom padding
-          - Content determines height
-          - Menu can scroll only if it becomes too tall
-      ========================================================= */}
-
+      
       <div
         className={`
           absolute
