@@ -3,6 +3,7 @@
 import Image from "next/image";
 
 import Button from "./ui/Button";
+import { ArrowDown } from "lucide-react";
 
 const MARQUEE_TEXT =
   "INFLUENCER • CREATOR • ENTREPRENEUR • BRAND AMBASSADOR • MEDIA PERSONALITY • PUBLIC FIGURE • LIFESTYLE • PARTNERSHIPS • EVENTS • UAE • ";
@@ -134,7 +135,23 @@ const Hero = () => {
               lg:max-w-312.5
             "
           >
-            <div className="portrait-fade-mask relative flex h-full w-full items-end justify-center">
+            {/* <div className="portrait-fade-mask relative flex h-full w-full items-end justify-center"> */}
+              <div
+                className="
+                  relative
+                  flex
+                  h-[58vh]
+                  w-full
+                  max-w-215
+                  items-end
+                  justify-center
+                  sm:h-[78vh]
+                  md:h-[92vh]
+                  md:max-w-250
+                  lg:h-[92vh]
+                  lg:max-w-275
+                "
+              >
               <Image
                 src="/images/nasir.avif"
                 alt="Nasser — UAE Influencer & Visionary"
@@ -258,12 +275,19 @@ const Hero = () => {
                     sm:tracking-[0.2em]
                   "
                 >
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75 motion-reduce:hidden" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                  </span>
+                  <span
+                    className="
+                      h-1.5
+                      w-1.5
+                      rounded-full
+                      bg-emerald-500
+                      shadow-[0_0_8px_rgba(16,185,129,0.8)]
+                      sm:h-2
+                      sm:w-2
+                    "
+                  />
 
-                  <span>  UAE • DUBAI</span>
+                  <span>UAE • DUBAI</span>
                 </div>
 
                 {/* Main heading */}
@@ -367,7 +391,7 @@ const Hero = () => {
             bottom-6
             left-1/2
             z-30
-            flex
+            hidden
             -translate-x-1/2
             select-none
             flex-col
@@ -376,6 +400,7 @@ const Hero = () => {
             text-center
             pointer-events-none
             sm:bottom-8
+            sm:flex
           "
         >
           <div
@@ -392,24 +417,13 @@ const Hero = () => {
               text-neutral-800
               shadow-xs
               backdrop-blur-xs
+              animate-bounce
             "
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+            <ArrowDown
               className="h-3.5 w-3.5 stroke-2"
               aria-hidden="true"
-            >
-              <path d="M12 5v14" />
-              <path d="m19 12-7 7-7-7" />
-            </svg>
+            />
           </div>
 
           <span

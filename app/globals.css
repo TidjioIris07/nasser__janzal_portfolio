@@ -38,3 +38,18 @@ body {
 .animate-marquee {
   animation: marquee 120s linear infinite;
 }
+
+@keyframes scroll-arrow-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+.scroll-arrow-bounce {
+  animation: scroll-arrow-bounce 1.4s ease-in-out infinite;
+}
