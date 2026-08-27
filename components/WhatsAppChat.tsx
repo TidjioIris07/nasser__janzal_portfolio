@@ -3,7 +3,7 @@
 import { UserRound, X } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 const WHATSAPP_URL = "https://wa.me/971508155158";
 const AVATAR_URL =
@@ -13,13 +13,21 @@ const WhatsAppChat = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
   const t = useTranslations("whatsapp");
+  const isArabic = useLocale() === "ar";
 
   const startConversation = () => {
     window.open(WHATSAPP_URL, "_blank", "noopener,noreferrer");
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-90 flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
+    <div
+      dir={isArabic ? "rtl" : "ltr"}
+      className={`fixed bottom-5 z-90 flex flex-col gap-3 sm:bottom-6 ${
+        isArabic
+          ? "left-5 items-start sm:left-6"
+          : "right-5 items-end sm:right-6"
+      }`}
+    >
       {isOpen && (
         <section
           role="dialog"
@@ -42,14 +50,14 @@ const WhatsAppChat = () => {
           </header>
 
           <div className="bg-[#f7f8f7] p-5">
-            <h4 className="text-lg font-semibold text-neutral-900">{t("heading")}</h4>
-            <p className="mt-1 text-sm leading-relaxed text-neutral-500">{t("description")}</p>
+            <h4 className="text-start text-lg font-semibold text-neutral-900">{t("heading")}</h4>
+            <p className="mt-1 text-start text-sm leading-relaxed text-neutral-500">{t("description")}</p>
 
             <button
               type="button"
               onClick={startConversation}
               aria-label={t("chatWith")}
-              className="mt-5 flex w-full items-center gap-3 rounded-2xl bg-white p-3 text-left shadow-sm ring-1 ring-neutral-200 transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1d8d5a]"
+              className="mt-5 flex w-full items-center gap-3 rounded-2xl bg-white p-3 text-start shadow-sm ring-1 ring-neutral-200 transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1d8d5a]"
             >
               {imageFailed ? (
                 <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-400">
