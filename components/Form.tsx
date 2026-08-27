@@ -14,6 +14,7 @@ const Form = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scopeOpen, setScopeOpen] = useState(false);
   const [scope, setScope] = useState("Brand Partnership");
+  const [hoveredScope, setHoveredScope] = useState<string | null>(null);
 
   const scopeOptions = [
     {
@@ -42,15 +43,13 @@ const Form = () => {
     scopeOptions.find((option) => option.value === scope)?.label ??
     scopeOptions[0].label;
 
-  // Listen for the custom event used to open the form
   useEffect(() => {
-    const handleOpen = () => {
-      setIsOpen(true);
-    };
+    const handleOpen = () => setIsOpen(true);
 
     const handleClose = () => {
       setIsOpen(false);
       setScopeOpen(false);
+      setHoveredScope(null);
     };
 
     window.addEventListener("open-enquiry-form", handleOpen);
@@ -62,7 +61,6 @@ const Form = () => {
     };
   }, []);
 
-  // Prevent the page behind the modal from scrolling
   useEffect(() => {
     if (!isOpen) return;
 
@@ -73,7 +71,6 @@ const Form = () => {
     };
   }, [isOpen]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     if (!scopeOpen) return;
 
@@ -82,6 +79,7 @@ const Form = () => {
 
       if (!target.closest("[data-scope-dropdown]")) {
         setScopeOpen(false);
+        setHoveredScope(null);
       }
     };
 
@@ -97,6 +95,7 @@ const Form = () => {
   const closeForm = () => {
     setIsOpen(false);
     setScopeOpen(false);
+    setHoveredScope(null);
   };
 
   const inputClasses = `
@@ -126,10 +125,7 @@ const Form = () => {
 
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center overflow-y-auto p-4 sm:p-6">
-      {/* =====================================================
-          OVERLAY
-      ====================================================== */}
-
+      {/* Overlay */}
       <button
         type="button"
         aria-label="Close enquiry form"
@@ -143,10 +139,7 @@ const Form = () => {
         "
       />
 
-      {/* =====================================================
-          MODAL
-      ====================================================== */}
-
+      {/* Modal */}
       <div
         className="
           relative
@@ -163,10 +156,7 @@ const Form = () => {
           sm:p-10
         "
       >
-        {/* =====================================================
-            CLOSE BUTTON
-        ====================================================== */}
-
+        {/* Close Button */}
         <button
           type="button"
           onClick={closeForm}
@@ -191,10 +181,7 @@ const Form = () => {
           <X className="h-5 w-5" />
         </button>
 
-        {/* =====================================================
-            HEADER
-        ====================================================== */}
-
+        {/* Header */}
         <div className="mb-8 pr-10">
           <span
             className="
@@ -236,18 +223,10 @@ const Form = () => {
           </p>
         </div>
 
-        {/* =====================================================
-            FORM
-        ====================================================== */}
-
+        {/* Form */}
         <form className="space-y-4">
-          {/* ===================================================
-              NAME + EMAIL
-          ==================================================== */}
-
+          {/* Name + Email */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {/* Full Name */}
-
             <div>
               <label htmlFor="fullName" className={labelClasses}>
                 Your Full Name *
@@ -262,8 +241,6 @@ const Form = () => {
                 className={inputClasses}
               />
             </div>
-
-            {/* Email */}
 
             <div>
               <label htmlFor="email" className={labelClasses}>
@@ -281,13 +258,9 @@ const Form = () => {
             </div>
           </div>
 
-          {/* ===================================================
-              COMPANY + ENGAGEMENT SCOPE
-          ==================================================== */}
-
+          {/* Company + Scope */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {/* Company */}
-
             <div>
               <label htmlFor="company" className={labelClasses}>
                 Brand / Company
@@ -303,34 +276,40 @@ const Form = () => {
             </div>
 
             {/* Engagement Scope */}
-
-            <div>
+            <div className="min-w-0">
               <label htmlFor="scope" className={labelClasses}>
                 Engagement Scope
               </label>
 
               <div
-                className="relative"
+                className="relative w-full min-w-0"
                 data-scope-dropdown
               >
-                {/* Dropdown trigger */}
-
+                {/* Select Trigger */}
                 <button
                   id="scope"
                   type="button"
-                  onClick={() => setScopeOpen((prev) => !prev)}
+                  onClick={() => {
+                    setScopeOpen((prev) => !prev);
+                    setHoveredScope(null);
+                  }}
                   className={`
                     ${inputClasses}
                     flex
+                    w-full
+                    min-w-0
                     cursor-pointer
                     items-center
                     justify-between
+                    gap-3
                     text-left
                   `}
                   aria-haspopup="listbox"
                   aria-expanded={scopeOpen}
                 >
-                  <span>{selectedScope}</span>
+                  <span className="min-w-0 flex-1 truncate">
+                    {selectedScope}
+                  </span>
 
                   <ChevronDown
                     className={`
@@ -345,8 +324,7 @@ const Form = () => {
                   />
                 </button>
 
-                {/* Dropdown options */}
-
+                {/* Dropdown */}
                 {scopeOpen && (
                   <div
                     className="
@@ -355,6 +333,7 @@ const Form = () => {
                       right-0
                       top-[calc(100%+6px)]
                       z-50
+                      w-full
                       overflow-hidden
                       rounded-xl
                       border
@@ -368,6 +347,7 @@ const Form = () => {
                   >
                     {scopeOptions.map((option) => {
                       const isSelected = scope === option.value;
+                      const isHovered = hoveredScope === option.value;
 
                       return (
                         <button
@@ -375,9 +355,16 @@ const Form = () => {
                           type="button"
                           role="option"
                           aria-selected={isSelected}
+                          onMouseEnter={() =>
+                            setHoveredScope(option.value)
+                          }
+                          onMouseLeave={() =>
+                            setHoveredScope(null)
+                          }
                           onClick={() => {
                             setScope(option.value);
                             setScopeOpen(false);
+                            setHoveredScope(null);
                           }}
                           className={`
                             flex
@@ -392,11 +379,11 @@ const Form = () => {
                             text-sm
                             transition-colors
                             duration-150
-
                             ${
-                              isSelected
-                                ? "bg-neutral-100 text-neutral-950"
-                                : "text-neutral-700 hover:bg-neutral-950 hover:text-white"
+                              isHovered ||
+                              (isSelected && hoveredScope === null)
+                                ? "bg-neutral-600 text-white"
+                                : "bg-white text-neutral-700"
                             }
                           `}
                         >
@@ -407,8 +394,7 @@ const Form = () => {
                   </div>
                 )}
 
-                {/* Hidden form value */}
-
+                {/* Hidden Form Value */}
                 <input
                   type="hidden"
                   name="scope"
@@ -418,10 +404,7 @@ const Form = () => {
             </div>
           </div>
 
-          {/* ===================================================
-              MESSAGE
-          ==================================================== */}
-
+          {/* Message */}
           <div>
             <label htmlFor="message" className={labelClasses}>
               Proposal & Message *
@@ -440,10 +423,7 @@ const Form = () => {
             />
           </div>
 
-          {/* ===================================================
-              SUBMIT BUTTON
-          ==================================================== */}
-
+          {/* Submit */}
           <button
             type="submit"
             className="
@@ -466,15 +446,11 @@ const Form = () => {
             "
           >
             <span>Submit Executive Enquiry</span>
-
             <ArrowRight className="h-4 w-4" />
           </button>
         </form>
 
-        {/* =====================================================
-            CONTACT DETAILS
-        ====================================================== */}
-
+        {/* Contact Details */}
         <div
           className="
             mt-6
@@ -490,15 +466,10 @@ const Form = () => {
             text-neutral-500
           "
         >
-          {/* Email */}
-
           <div className="flex items-center gap-2">
             <Mail className="h-3.5 w-3.5 text-neutral-800" />
-
             <span>management@nasser.ae</span>
           </div>
-
-          {/* WhatsApp */}
 
           <a
             href="https://wa.me/971508155158"
@@ -516,15 +487,11 @@ const Form = () => {
             "
           >
             <Phone className="h-3.5 w-3.5" />
-
             <span>WhatsApp: +971 50 815 5158</span>
           </a>
 
-          {/* Location */}
-
           <div className="flex items-center gap-2">
             <MapPin className="h-3.5 w-3.5 text-neutral-800" />
-
             <span>Downtown Dubai, UAE</span>
           </div>
         </div>
