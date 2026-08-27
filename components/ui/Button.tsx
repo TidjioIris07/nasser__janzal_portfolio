@@ -37,6 +37,7 @@ const Button = ({
         focus-visible:outline-none
         focus-visible:ring-2
         focus-visible:ring-offset-2
+        cursor-pointer
         ${VARIANT_STYLES[variant]}
         ${className}
       `}
