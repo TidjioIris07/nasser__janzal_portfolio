@@ -50,21 +50,21 @@ const VideoCarousel = () => {
             className="
               group
               relative
-              aspect-[9/16]
+              aspect-9/16
               w-[72vw]
-              max-w-[300px]
+              max-w-75
               shrink-0
               snap-start
               overflow-hidden
-              rounded-[24px]
+              rounded-3xl
               border
               border-neutral-200/80
               bg-neutral-950
               shadow-[0_8px_30px_rgba(0,0,0,0.06)]
               sm:w-[42vw]
-              sm:max-w-[280px]
+              sm:max-w-70
               md:w-[30vw]
-              md:max-w-[280px]
+              md:max-w-70
               lg:w-[calc((100%-96px)/5)]
               lg:max-w-none
             "
@@ -94,7 +94,7 @@ const VideoCarousel = () => {
                 inset-x-0
                 bottom-0
                 h-24
-                bg-gradient-to-t
+                bg-linear-to-t
                 from-black/20
                 to-transparent
                 opacity-60

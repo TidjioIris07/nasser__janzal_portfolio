@@ -27,7 +27,7 @@ const LogoMarquee = () => {
   return (
     <section
       aria-label={t("label")}
-      className="relative overflow-hidden border-t border-b border-black/[0.06] bg-white py-16"
+      className="relative overflow-hidden border-t border-b border-black/6 bg-white py-16"
     >
       <p className="mb-10 text-center text-[10px] font-semibold uppercase tracking-[0.4em] text-black/40 sm:text-xs">
         {t("title")}
@@ -39,7 +39,7 @@ const LogoMarquee = () => {
           group relative mx-auto w-[85%] max-w-6xl overflow-hidden
           sm:w-[80%]
           lg:w-[75%]
-          [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]
+          mask-[linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]
           [-webkit-mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]
         "
       >
@@ -76,13 +76,13 @@ const LogoMarquee = () => {
                 sizes="(max-width: 640px) 150px, (max-width: 1024px) 190px, 220px"
                 loading="lazy"
                 className="
-                  h-11 w-auto max-w-[160px]
+                  h-11 w-auto max-w-40
                   object-contain
                   opacity-85
                   transition-all duration-300
                   hover:opacity-100
-                  sm:h-13 sm:max-w-[190px]
-                  lg:h-15 lg:max-w-[220px]
+                  sm:h-13 sm:max-w-45.5
+                  lg:h-15 lg:max-w-55
                 "
               />
             </div>

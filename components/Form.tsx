@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import {
   ArrowRight,
   ChevronDown,
@@ -18,6 +18,11 @@ const Form = () => {
   const [scopeOpen, setScopeOpen] = useState(false);
   const [scope, setScope] = useState("Brand Partnership");
   const [hoveredScope, setHoveredScope] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState<
+    "success" | "error" | null
+  >(null);
+  const [submissionMessage, setSubmissionMessage] = useState("");
 
   const scopeOptions = [
     {
@@ -99,6 +104,44 @@ const Form = () => {
     setIsOpen(false);
     setScopeOpen(false);
     setHoveredScope(null);
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setSubmissionStatus(null);
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch("/api/enquiry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(Object.fromEntries(formData)),
+      });
+      const result = (await response.json()) as { error?: string };
+
+      if (!response.ok) {
+        throw new Error(result.error ?? "We could not send your enquiry.");
+      }
+
+      form.reset();
+      setScope("Brand Partnership");
+      setSubmissionStatus("success");
+      setSubmissionMessage(
+        "Your enquiry has been sent. A confirmation email is on its way.",
+      );
+    } catch (error) {
+      setSubmissionStatus("error");
+      setSubmissionMessage(
+        error instanceof Error
+          ? error.message
+          : "We could not send your enquiry. Please try again.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const inputClasses = `
@@ -226,7 +269,7 @@ const Form = () => {
         </div>
 
         {/* Form */}
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit}>
           {/* Name + Email */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
@@ -428,6 +471,7 @@ const Form = () => {
           {/* Submit */}
           <button
             type="submit"
+            disabled={isSubmitting}
             className="
               flex
               w-full
@@ -445,11 +489,27 @@ const Form = () => {
               transition-all
               hover:bg-neutral-800
               active:scale-[0.99]
+              disabled:cursor-not-allowed
+              disabled:opacity-60
             "
           >
-            <span>{t("submit")}</span>
+            <span>{isSubmitting ? "Sending…" : t("submit")}</span>
             <ArrowRight className="h-4 w-4" />
           </button>
+
+          {submissionStatus && (
+            <p
+              className={`text-center text-sm ${
+                submissionStatus === "success"
+                  ? "text-emerald-700"
+                  : "text-red-600"
+              }`}
+              role="status"
+              aria-live="polite"
+            >
+              {submissionMessage}
+            </p>
+          )}
         </form>
 
         {/* Contact Details */}

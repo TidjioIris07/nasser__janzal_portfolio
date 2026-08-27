@@ -52,7 +52,7 @@ const SERVICES: Service[] = [
 const Services = () => {
   const t = useTranslations("services");
   const services = SERVICES.map((service, index) => ({
-    ...service,
+    ...service, 
     title: t(["ugcTitle", "modelingTitle", "actingTitle", "campaignsTitle", "reelsTitle", "longTermTitle"][index]),
     description: t(["ugcDescription", "modelingDescription", "actingDescription", "campaignsDescription", "reelsDescription", "longTermDescription"][index]),
   }));
