@@ -87,134 +87,114 @@ const Journey = () => {
         </div>
 
         {/* Core Philosophy Card */}
-        <div
-          className="
-            relative
-            h-91.25
-            w-full
-            overflow-hidden
-            rounded-3xl
-            border
-            border-neutral-200/80
-            bg-neutral-50
-            shadow-[0_20px_25px_-5px_rgba(0,0,0,0.10),0_8px_10px_-6px_rgba(0,0,0,0.10)]
-            sm:h-100
-            md:h-107.5
-            lg:h-103.5
-            xl:h-103.5
-          "
-        >
-          {/* Background Image */}
+      <div
+        className="
+          relative
+          overflow-hidden
+          rounded-3xl
+          border
+          border-neutral-200/80
+          bg-neutral-50
+          p-8
+          text-neutral-950
+          shadow-xl
+          sm:p-12
+          md:p-16
+        "
+      >
+        {/* Background Image */}
+        <div className="pointer-events-none absolute inset-0 z-0">
           <Image
             src="/images/deskPhoto.avif"
-            alt="Nasser working at his desk in Dubai"
+            alt="Nasser Seated with Laptop"
             fill
             priority={false}
-            sizes="100vw"
+            sizes="(max-width: 1440px) 100vw, 1440px"
             className="
-              object-fill
+              object-cover
               object-right
+              opacity-95
+              md:object-top-right
             "
           />
 
-          {/* Gradient Overlay */}
+          {/* Horizontal Gradient */}
           <div
             className="
               absolute
               inset-0
               bg-linear-to-r
-              from-white
-              from-0%
-              via-white
-              via-70%
-              to-white/10
-              to-100%
-              opacity-60
-              sm:via-white/95
-              sm:via-58%
-              md:via-white/90
-              md:via-50%
-              lg:via-white/92
-              lg:via-42%
+              from-neutral-50
+              via-neutral-50/80
+              to-transparent
+              sm:via-neutral-50/65
             "
           />
 
-          {/* Card Content */}
+          {/* Vertical Gradient */}
           <div
             className="
-              relative
-              z-10
-              flex
-              h-full
-              w-full
-              items-center
-              p-7
-              sm:p-10
-              md:p-12
+              absolute
+              inset-0
+              bg-linear-to-t
+              from-neutral-50/40
+              via-transparent
+              to-neutral-50/20
+            "
+          />
+        </div>
+
+        {/* Card Content */}
+        <div className="relative z-10 max-w-4xl">
+          <span
+            className="
+              mb-4
+              block
+              text-xs
+              font-semibold
+              uppercase
+              tracking-[0.25em]
+              text-neutral-500
             "
           >
-            <div className="max-w-190">
-              <blockquote
-                className="
-                  font-sans
-                  text-[27px]
-                  font-semibold
-                  leading-[1.16]
-                  tracking-tight
-                  text-neutral-950
-                  sm:text-[30px]
-                  md:text-[34px]
-                  lg:text-[39px]
-                  xl:text-[41px]
-                "
-              >
-                <span
-                  className="
-                    mb-7
-                    block
-                    text-[11px]
-                    font-semibold
-                    uppercase
-                    tracking-[0.28em]
-                    text-neutral-500
-                    sm:text-xs
-                  "
-                >
-                  Core Philosophy
-                </span>
+            Core Philosophy
+          </span>
 
-                &ldquo;True influence is not about being seen everywhere—it is
-                about creating an unmistakable presence that inspires
-                elevation.&rdquo;
+          <blockquote
+            className="
+              font-sans
+              text-2xl
+              font-semibold
+              leading-snug
+              tracking-tight
+              text-neutral-950
+              sm:text-3xl
+              sm:leading-tight
+              md:text-4xl
+              lg:text-[42px]
+            "
+          >
+            “True influence is not about being seen everywhere—it is about
+            creating an unmistakable presence that inspires elevation.”
+          </blockquote>
 
-                <div
-                  className="
-                    mt-7
-                    flex
-                    items-center
-                    gap-4
-                    sm:mt-8
-                    sm:gap-5
-                  "
-                >
-                  <div className="h-px w-10 shrink-0 bg-neutral-950 sm:w-11" />
+          <div className="mt-8 flex items-center gap-4">
+            <div className="h-0.5 w-10 bg-neutral-950" />
 
-                  <span
-                    className="
-                      text-xs
-                      font-bold
-                      uppercase
-                      tracking-[0.24em]
-                      text-neutral-800
-                    "
-                  >
-                    Nasser — Dubai, UAE
-                  </span>
-                </div>
-              </blockquote>
-            </div>
+            <span
+              className="
+                text-xs
+                font-semibold
+                uppercase
+                tracking-[0.2em]
+                text-neutral-800
+              "
+            >
+              Nasser — Dubai, UAE
+            </span>
           </div>
         </div>
+      </div>
       </div>
     </section>
   );
