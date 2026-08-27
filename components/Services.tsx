@@ -78,25 +78,28 @@ const Services = () => {
           "
         >
           <div>
-            <span
-              className="
-                mb-5
-                inline-flex
-                items-center
-                gap-2
-                rounded-full
-                bg-neutral-100
-                px-3
-                py-1
-                text-xs
-                font-semibold
-                uppercase
-                tracking-[0.2em]
-                text-black/60
-              "
-            >
-              04 / Core Services & Offerings
-            </span>
+             <div
+                    className="
+                        mb-5
+                        inline-flex
+                        items-center
+                        gap-2
+                        rounded-full
+                        bg-neutral-100
+                        px-3
+                        py-1
+                        text-[11px]
+                        font-medium
+                        uppercase
+                        tracking-[0.2em]
+                        text-neutral-600
+                        whitespace-nowrap
+                    "
+                >
+                    <span>
+                        04 / Core Services & Offerings
+                    </span>
+                </div>
 
             <h2
               className="

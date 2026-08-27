@@ -98,7 +98,7 @@ const Partnership = () => {
                     "
                 >
                     <div>
-                        <span
+                        <div
                             className="
                                 mb-5
                                 inline-flex
@@ -108,15 +108,16 @@ const Partnership = () => {
                                 bg-neutral-100
                                 px-3
                                 py-1
-                                text-xs
-                                font-semibold
+                                text-[11px]
+                                font-medium
                                 uppercase
                                 tracking-[0.2em]
-                                text-black/60
+                                text-neutral-600
+                                whitespace-nowrap
                             "
                         >
-                            03 / Brand Collaborations & Timeline
-                        </span>
+                            <span>03 / Brand Collaborations &amp; Timeline</span>
+                        </div>
 
                         <h2
                             className="

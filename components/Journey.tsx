@@ -12,9 +12,26 @@ const Journey = () => {
         {/* Header */}
         <div className="mb-16 flex flex-col justify-between gap-8 md:mb-20 md:flex-row md:items-end">
           <div>
-            <span className="mb-5 inline-flex rounded-full bg-black/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-black/60">
-              01 / Legacy &amp; Evolution
-            </span>
+            <div
+              className="
+                  mb-5
+                  inline-flex
+                  items-center
+                  gap-2
+                  rounded-full
+                  bg-neutral-100
+                  px-3
+                  py-1
+                  text-[11px]
+                  font-medium
+                  uppercase
+                  tracking-[0.2em]
+                  text-neutral-600
+                  whitespace-nowrap
+              "
+            >
+              <span>01 / Legacy &amp; Evolution</span>
+          </div>
             <h2 className="font-brand text-3xl font-extrabold uppercase text-black md:text-5xl lg:text-6xl">
               The Journey
             </h2>
