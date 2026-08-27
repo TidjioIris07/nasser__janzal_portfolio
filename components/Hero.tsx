@@ -5,7 +5,6 @@ import Image from "next/image";
 import Button from "./ui/Button";
 import { ArrowDown } from "lucide-react";
 import gsap from "gsap";
-import { scrollToSection } from "@/utils/utils";
 
 const MARQUEE_TEXT =
   "INFLUENCER • CREATOR • ENTREPRENEUR • BRAND AMBASSADOR • MEDIA PERSONALITY • PUBLIC FIGURE • LIFESTYLE • PARTNERSHIPS • EVENTS • UAE • ";
@@ -57,11 +56,9 @@ const Hero = () => {
       "(prefers-reduced-motion: reduce)",
     ).matches;
 
-    /*
-     * -------------------------------------------------------
-     * ELEMENT GROUPS
-     * -------------------------------------------------------
-     */
+    /* -------------------------------------------------------
+       ELEMENT GROUPS
+    ------------------------------------------------------- */
 
     const revealElements = [
       marquee,
@@ -73,14 +70,9 @@ const Hero = () => {
       scrollIndicator,
     ];
 
-    /*
-     * -------------------------------------------------------
-     * INITIAL HERO REVEAL
-     * -------------------------------------------------------
-     *
-     * The hero waits for the preloader to finish,
-     * exactly like the navbar.
-     */
+    /* -------------------------------------------------------
+       INITIAL HERO REVEAL
+    ------------------------------------------------------- */
 
     let introPlayed = false;
 
@@ -99,21 +91,12 @@ const Hero = () => {
         return;
       }
 
-      const ctx = gsap.context(() => {
-        /*
-         * Initial position.
-         *
-         * Each element starts 24px below its
-         * natural position and fades in.
-         */
+      gsap.context(() => {
         gsap.set(revealElements, {
           y: 24,
           opacity: 0,
         });
 
-        /*
-         * Individual reveal.
-         */
         const reveal = gsap.timeline({
           defaults: {
             ease: "power3.out",
@@ -181,15 +164,11 @@ const Hero = () => {
             "-=0.35",
           );
       }, hero);
-
-      return ctx;
     };
 
-    /*
-     * -------------------------------------------------------
-     * WAIT FOR PRELOADER
-     * -------------------------------------------------------
-     */
+    /* -------------------------------------------------------
+       WAIT FOR PRELOADER
+    ------------------------------------------------------- */
 
     const handlePreloaderFinished = () => {
       animateHero();
@@ -200,15 +179,9 @@ const Hero = () => {
       handlePreloaderFinished,
     );
 
-    /*
-     * -------------------------------------------------------
-     * FALLBACK
-     * -------------------------------------------------------
-     *
-     * If the preloader has already finished before
-     * this component registered its event listener,
-     * reveal the hero shortly after mount.
-     */
+    /* -------------------------------------------------------
+       FALLBACK
+    ------------------------------------------------------- */
 
     const fallbackTimer = window.setTimeout(() => {
       if (introPlayed) return;
@@ -222,30 +195,28 @@ const Hero = () => {
       }
     }, 100);
 
-    /*
-     * -------------------------------------------------------
-     * SCROLL CONFIG
-     * -------------------------------------------------------
-     */
+    /* -------------------------------------------------------
+       SCROLL CONFIG
+    ------------------------------------------------------- */
 
     const fadeDistance = 1100;
     const smoothing = 0.075;
 
     let targetProgress = 0;
     let currentProgress = 0;
+
     let locked = false;
     let hasStartedScrolling = false;
+
     let touchY: number | null = null;
     let rafId: number | null = null;
 
     const clamp = (value: number) =>
       Math.min(1, Math.max(0, value));
 
-    /*
-     * -------------------------------------------------------
-     * QUICK SETTERS
-     * -------------------------------------------------------
-     */
+    /* -------------------------------------------------------
+       QUICK SETTERS
+    ------------------------------------------------------- */
 
     const setPortraitY = gsap.quickSetter(
       portrait,
@@ -288,36 +259,30 @@ const Hero = () => {
       "opacity",
     );
 
-    /*
-     * -------------------------------------------------------
-     * SCROLL RENDER
-     * -------------------------------------------------------
-     */
+    /* -------------------------------------------------------
+       SCROLL RENDER
+    ------------------------------------------------------- */
 
     const render = (progress: number) => {
       const p = clamp(progress);
 
-      /*
-       * Portrait
-       */
+      /* Portrait */
+
       setPortraitY(p * 130);
       setPortraitOpacity(1 - p);
 
-      /*
-       * Main content
-       */
+      /* Main content */
+
       setContentScale(1 + p * 0.8);
       setContentOpacity(1 - p);
 
-      /*
-       * Marquee
-       */
+      /* Marquee */
+
       setMarqueeScale(1 + p * 0.5);
       setMarqueeOpacity(1 - p);
 
-      /*
-       * Scroll indicator
-       */
+      /* Scroll indicator */
+
       if (!hasStartedScrolling) {
         setIndicatorScale(1);
         setIndicatorOpacity(1);
@@ -329,29 +294,59 @@ const Hero = () => {
 
     render(0);
 
-    /*
-     * -------------------------------------------------------
-     * RESTORE HERO
-     * -------------------------------------------------------
-     *
-     * Called by:
-     *
-     * window.dispatchEvent(
-     *   new Event("hero:restore")
-     * )
-     *
-     * This is separate from the initial preloader
-     * animation.
-     */
+    /* -------------------------------------------------------
+       SCROLL LOCK
+    ------------------------------------------------------- */
+
+    const lockScroll = () => {
+      if (locked) return;
+
+      locked = true;
+
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+    };
+
+    const unlockScroll = () => {
+      if (!locked) return;
+
+      locked = false;
+
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    };
+
+    /* -------------------------------------------------------
+       COMPLETE HERO
+       
+       Used by the "Discover My Story" button.
+    ------------------------------------------------------- */
+
+    const completeHero = () => {
+      targetProgress = 1;
+      currentProgress = 1;
+
+      hasStartedScrolling = true;
+
+      render(1);
+
+      unlockScroll();
+    };
+
+    window.addEventListener(
+      "hero:complete",
+      completeHero,
+    );
+
+    /* -------------------------------------------------------
+       RESTORE HERO
+    ------------------------------------------------------- */
 
     const restoreHero = () => {
       targetProgress = 0;
       currentProgress = 0;
       hasStartedScrolling = false;
 
-      /*
-       * Stop running animations.
-       */
       gsap.killTweensOf([
         portrait,
         content,
@@ -364,9 +359,6 @@ const Hero = () => {
         button,
       ]);
 
-      /*
-       * Restore scroll-driven elements.
-       */
       gsap.set(portrait, {
         y: 0,
         opacity: 1,
@@ -387,9 +379,6 @@ const Hero = () => {
         opacity: 1,
       });
 
-      /*
-       * Re-run the hero reveal.
-       */
       if (!reduceMotion) {
         gsap.set(revealElements, {
           y: 24,
@@ -469,9 +458,6 @@ const Hero = () => {
         });
       }
 
-      /*
-       * Lock the fake hero scroll again.
-       */
       document.documentElement.style.overflow = "hidden";
       document.body.style.overflow = "hidden";
 
@@ -483,51 +469,21 @@ const Hero = () => {
       restoreHero,
     );
 
-    /*
-     * -------------------------------------------------------
-     * SCROLL LOCK
-     * -------------------------------------------------------
-     */
+    /* -------------------------------------------------------
+       INITIAL LOCK
+    ------------------------------------------------------- */
 
-    const lockScroll = () => {
-      if (locked) return;
-
-      locked = true;
-
-      document.documentElement.style.overflow =
-        "hidden";
-
-      document.body.style.overflow = "hidden";
-    };
-
-    const unlockScroll = () => {
-      if (!locked) return;
-
-      locked = false;
-
-      document.documentElement.style.overflow = "";
-      document.body.style.overflow = "";
-    };
-
-    /*
-     * Initially lock hero.
-     */
     if (window.scrollY <= 1) {
       lockScroll();
     }
 
-    /*
-     * -------------------------------------------------------
-     * APPLY DELTA
-     * -------------------------------------------------------
-     */
+    /* -------------------------------------------------------
+       APPLY DELTA
+    ------------------------------------------------------- */
 
     const applyDelta = (delta: number) => {
       if (delta === 0) return;
 
-      /*
-       * Start scrolling.
-       */
       if (delta > 0 && !hasStartedScrolling) {
         hasStartedScrolling = true;
 
@@ -550,12 +506,8 @@ const Hero = () => {
           safeDelta / fadeDistance,
       );
 
-      /*
-       * Fully faded out.
-       */
       if (targetProgress >= 1) {
         targetProgress = 1;
-
         currentProgress = Math.min(
           currentProgress,
           1,
@@ -564,9 +516,6 @@ const Hero = () => {
         unlockScroll();
       }
 
-      /*
-       * Back to hero.
-       */
       if (targetProgress <= 0) {
         targetProgress = 0;
         currentProgress = 0;
@@ -580,23 +529,19 @@ const Hero = () => {
       }
     };
 
-    /*
-     * -------------------------------------------------------
-     * WHEEL
-     * -------------------------------------------------------
-     */
+    /* -------------------------------------------------------
+       WHEEL
+    ------------------------------------------------------- */
 
     const handleWheel = (event: WheelEvent) => {
       if (locked) {
         event.preventDefault();
+
         applyDelta(event.deltaY);
+
         return;
       }
 
-      /*
-       * If we're back at the top and scroll upward,
-       * enter the fake hero scroll again.
-       */
       if (
         event.deltaY < 0 &&
         window.scrollY <= 1
@@ -604,15 +549,14 @@ const Hero = () => {
         event.preventDefault();
 
         lockScroll();
+
         applyDelta(event.deltaY);
       }
     };
 
-    /*
-     * -------------------------------------------------------
-     * KEYBOARD
-     * -------------------------------------------------------
-     */
+    /* -------------------------------------------------------
+       KEYBOARD
+    ------------------------------------------------------- */
 
     const handleKeyDown = (
       event: KeyboardEvent,
@@ -629,9 +573,6 @@ const Hero = () => {
         event.key === " " ||
         event.key === "Spacebar";
 
-      /*
-       * Hero is locked.
-       */
       if (locked) {
         let delta = 0;
 
@@ -668,13 +609,12 @@ const Hero = () => {
         }
 
         event.preventDefault();
+
         applyDelta(delta);
+
         return;
       }
 
-      /*
-       * Go back into the hero.
-       */
       if (
         isUpKey &&
         window.scrollY <= 1 &&
@@ -693,9 +633,6 @@ const Hero = () => {
         return;
       }
 
-      /*
-       * Home key.
-       */
       if (
         event.key === "Home" &&
         targetProgress > 0
@@ -717,11 +654,9 @@ const Hero = () => {
       }
     };
 
-    /*
-     * -------------------------------------------------------
-     * NORMAL SCROLL
-     * -------------------------------------------------------
-     */
+    /* -------------------------------------------------------
+       NORMAL SCROLL
+    ------------------------------------------------------- */
 
     const handleScroll = () => {
       if (
@@ -737,11 +672,9 @@ const Hero = () => {
       }
     };
 
-    /*
-     * -------------------------------------------------------
-     * TOUCH
-     * -------------------------------------------------------
-     */
+    /* -------------------------------------------------------
+       TOUCH
+    ------------------------------------------------------- */
 
     const handleTouchStart = (
       event: TouchEvent,
@@ -780,11 +713,9 @@ const Hero = () => {
       touchY = null;
     };
 
-    /*
-     * -------------------------------------------------------
-     * SMOOTH LOOP
-     * -------------------------------------------------------
-     */
+    /* -------------------------------------------------------
+       SMOOTH LOOP
+    ------------------------------------------------------- */
 
     const tick = () => {
       const difference =
@@ -806,11 +737,9 @@ const Hero = () => {
         requestAnimationFrame(tick);
     };
 
-    /*
-     * -------------------------------------------------------
-     * EVENTS
-     * -------------------------------------------------------
-     */
+    /* -------------------------------------------------------
+       EVENTS
+    ------------------------------------------------------- */
 
     window.addEventListener(
       "wheel",
@@ -849,11 +778,9 @@ const Hero = () => {
     rafId =
       requestAnimationFrame(tick);
 
-    /*
-     * -------------------------------------------------------
-     * CLEANUP
-     * -------------------------------------------------------
-     */
+    /* -------------------------------------------------------
+       CLEANUP
+    ------------------------------------------------------- */
 
     return () => {
       window.removeEventListener(
@@ -863,6 +790,16 @@ const Hero = () => {
 
       window.clearTimeout(
         fallbackTimer,
+      );
+
+      window.removeEventListener(
+        "hero:complete",
+        completeHero,
+      );
+
+      window.removeEventListener(
+        "hero:restore",
+        restoreHero,
       );
 
       window.removeEventListener(
@@ -893,11 +830,6 @@ const Hero = () => {
       window.removeEventListener(
         "touchend",
         handleTouchEnd,
-      );
-
-      window.removeEventListener(
-        "hero:restore",
-        restoreHero,
       );
 
       if (rafId !== null) {
@@ -1342,7 +1274,44 @@ const Hero = () => {
                   className="will-change-transform"
                 >
                   <Button
-                    onClick={(event) =>scrollToSection(event, "#journey")}
+                    href="#journey"
+                    onClick={(event) => {
+                      event.preventDefault();
+
+                      /*
+                       * Tell Hero to:
+                       * 1. Complete the fake scroll
+                       * 2. Fade/position everything as finished
+                       * 3. Unlock real document scrolling
+                       */
+                      window.dispatchEvent(
+                        new Event("hero:complete"),
+                      );
+
+                      /*
+                       * Wait one frame so the browser
+                       * sees the document as scrollable.
+                       */
+                      requestAnimationFrame(() => {
+                        const journey =
+                          document.getElementById(
+                            "journey",
+                          );
+
+                        if (!journey) return;
+
+                        journey.scrollIntoView({
+                          behavior: "smooth",
+                          block: "start",
+                        });
+
+                        window.history.pushState(
+                          null,
+                          "",
+                          "#journey",
+                        );
+                      });
+                    }}
                     className="
                       mt-4
                       sm:mt-6
