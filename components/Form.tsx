@@ -9,8 +9,11 @@ import {
   Phone,
   X,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 const Form = () => {
+  const t = useTranslations("form");
+  const contact = useTranslations("contact");
   const [isOpen, setIsOpen] = useState(false);
   const [scopeOpen, setScopeOpen] = useState(false);
   const [scope, setScope] = useState("Brand Partnership");
@@ -19,23 +22,23 @@ const Form = () => {
   const scopeOptions = [
     {
       value: "Brand Partnership",
-      label: "Brand Campaign & Ambassadorship",
+      label: t("brand"),
     },
     {
       value: "Keynote Speaking",
-      label: "Keynote Speaker / Panelist",
+      label: t("keynote"),
     },
     {
       value: "VIP Event Appearance",
-      label: "VIP Event & Launch Host",
+      label: t("event"),
     },
     {
       value: "Editorial & Press",
-      label: "Editorial Interview / Media Feature",
+      label: t("editorial"),
     },
     {
       value: "Private Consultation",
-      label: "Private Strategy Advisory",
+      label: t("consultation"),
     },
   ];
 
@@ -128,7 +131,7 @@ const Form = () => {
       {/* Overlay */}
       <button
         type="button"
-        aria-label="Close enquiry form"
+        aria-label={t("closeForm")}
         onClick={closeForm}
         className="
           fixed
@@ -160,7 +163,7 @@ const Form = () => {
         <button
           type="button"
           onClick={closeForm}
-          aria-label="Close modal"
+          aria-label={t("closeModal")}
           className="
             absolute
             right-6
@@ -194,7 +197,7 @@ const Form = () => {
               text-neutral-400
             "
           >
-            Executive Representation & Bookings
+            {t("eyebrow")}
           </span>
 
           <h3
@@ -206,7 +209,7 @@ const Form = () => {
               sm:text-3xl
             "
           >
-            Send an Official Enquiry
+            {t("title")}
           </h3>
 
           <p
@@ -218,8 +221,7 @@ const Form = () => {
               sm:text-sm
             "
           >
-            Connect directly with Nasser’s management team for brand
-            partnerships, media appearances, and keynotes.
+            {t("description")}
           </p>
         </div>
 
@@ -229,7 +231,7 @@ const Form = () => {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor="fullName" className={labelClasses}>
-                Your Full Name *
+                {t("name")}
               </label>
 
               <input
@@ -237,14 +239,14 @@ const Form = () => {
                 name="fullName"
                 type="text"
                 required
-                placeholder="e.g. Tariq Al-Hashimi"
+                placeholder={t("namePlaceholder")}
                 className={inputClasses}
               />
             </div>
 
             <div>
               <label htmlFor="email" className={labelClasses}>
-                Official Email *
+                {t("email")}
               </label>
 
               <input
@@ -263,14 +265,14 @@ const Form = () => {
             {/* Company */}
             <div>
               <label htmlFor="company" className={labelClasses}>
-                Brand / Company
+                {t("company")}
               </label>
 
               <input
                 id="company"
                 name="company"
                 type="text"
-                placeholder="e.g. Dubai Luxury Group"
+                placeholder={t("companyPlaceholder")}
                 className={inputClasses}
               />
             </div>
@@ -278,7 +280,7 @@ const Form = () => {
             {/* Engagement Scope */}
             <div className="min-w-0">
               <label htmlFor="scope" className={labelClasses}>
-                Engagement Scope
+                {t("scope")}
               </label>
 
               <div
@@ -343,7 +345,7 @@ const Form = () => {
                       shadow-xl
                     "
                     role="listbox"
-                    aria-label="Engagement Scope"
+                    aria-label={t("scope")}
                   >
                     {scopeOptions.map((option) => {
                       const isSelected = scope === option.value;
@@ -407,7 +409,7 @@ const Form = () => {
           {/* Message */}
           <div>
             <label htmlFor="message" className={labelClasses}>
-              Proposal & Message *
+              {t("message")}
             </label>
 
             <textarea
@@ -415,7 +417,7 @@ const Form = () => {
               name="message"
               required
               rows={4}
-              placeholder="Outline campaign objectives, deliverables, timeline, or event details..."
+              placeholder={t("messagePlaceholder")}
               className={`
                 ${inputClasses}
                 resize-none
@@ -445,7 +447,7 @@ const Form = () => {
               active:scale-[0.99]
             "
           >
-            <span>Submit Executive Enquiry</span>
+            <span>{t("submit")}</span>
             <ArrowRight className="h-4 w-4" />
           </button>
         </form>
@@ -487,12 +489,12 @@ const Form = () => {
             "
           >
             <Phone className="h-3.5 w-3.5" />
-            <span>WhatsApp: +971 50 815 5158</span>
+            <span>{contact("whatsapp")}</span>
           </a>
 
           <div className="flex items-center gap-2">
             <MapPin className="h-3.5 w-3.5 text-neutral-800" />
-            <span>Downtown Dubai, UAE</span>
+            <span>{contact("location")}</span>
           </div>
         </div>
       </div>

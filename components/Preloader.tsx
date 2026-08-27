@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
+import { useTranslations } from "next-intl";
 
 interface PreloaderProps {
   onFinish?: () => void;
@@ -12,6 +13,8 @@ export default function Preloader({
   onFinish,
   onLogoMerge,
 }: PreloaderProps) {
+  const t = useTranslations("preloader");
+  const brand = useTranslations("brand");
   const curtainRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
@@ -306,7 +309,7 @@ export default function Preloader({
                 "transform, opacity, filter",
             }}
           >
-            NASSER
+            {brand("name")}
           </h1>
 
           {/* SUBTITLE */}
@@ -332,7 +335,7 @@ export default function Preloader({
                 "transform, opacity, filter",
             }}
           >
-            AN EMIRATI INFLUENCER
+            {t("subtitle")}
           </p>
         </div>
       </div>

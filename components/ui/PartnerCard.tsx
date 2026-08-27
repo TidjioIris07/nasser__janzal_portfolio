@@ -25,7 +25,7 @@ const PartnerCard = ({
                         {location}
                     </span>
 
-                    <div className="relative h-14 sm:h-16 w-36 sm:w-44 bg-white rounded-2xl p-2.5 border border-neutral-200/90 flex items-center justify-center shadow-sm">
+                    <div style={{ position: "relative" }} className="h-14 sm:h-16 w-36 sm:w-44 bg-white rounded-2xl p-2.5 border border-neutral-200/90 flex items-center justify-center shadow-sm">
                         <Image
                             src={photo}
                             alt={`${name} logo`}

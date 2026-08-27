@@ -1,12 +1,15 @@
 "use client";
 
 import { ArrowUp, Mail, MapPin, Phone } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import Button from "./ui/Button";
 
 import { scrollToSection, scrollToTop, showForm } from "@/utils/utils";
 
 const Footer = () => {
+  const t = useTranslations("footer");
+  const brand = useTranslations("brand");
   const currentYear = new Date().getFullYear();
 
   // ================================
@@ -14,23 +17,23 @@ const Footer = () => {
   // ================================
   const navigationLinks = [
     {
-      label: "Hero",
+      label: t("hero"),
       href: "#hero",
     },
     {
-      label: "The Journey",
+      label: t("journey"),
       href: "#journey",
     },
     {
-      label: "Impact & Reach",
+      label: t("impact"),
       href: "#impact",
     },
     {
-      label: "Partnerships",
+      label: t("partnerships"),
       href: "#partnerships",
     },
     {
-      label: "Core Services",
+      label: t("services"),
       href: "#services",
     },
   ];
@@ -40,17 +43,17 @@ const Footer = () => {
   // ================================
   const socialLinks = [
     {
-      label: "Instagram",
+      label: t("instagram"),
       href: "https://www.instagram.com/nasserjanzal",
       external: true,
     },
     {
-      label: "TikTok",
+      label: t("tiktok"),
       href: "https://www.tiktok.com/@nasserjanzal",
       external: true,
     },
     {
-      label: "WhatsApp Chat ↗",
+      label: t("whatsapp"),
       href: "https://wa.me/971508155158",
       external: true,
       highlight: true,
@@ -74,7 +77,7 @@ const Footer = () => {
   ];
 
   const location = {
-    value: "Downtown Dubai, UAE",
+    value: t("location"),
   };
 
   return (
@@ -128,7 +131,7 @@ const Footer = () => {
                   md:text-3xl
                 "
               >
-                Nasser
+                {brand("name")}
               </span>
 
               <span className="h-2 w-2 rounded-full bg-neutral-950" />
@@ -144,10 +147,7 @@ const Footer = () => {
                 text-neutral-600
               "
             >
-              Prominent Emirati influencer, brand ambassador, and digital
-              visionary based in Dubai, UAE. Partnering with top GCC
-              enterprises for high-impact media campaigns and luxury
-              ambassadorships.
+              {t("description")}
             </p>
 
             {/* CTA */}
@@ -157,7 +157,7 @@ const Footer = () => {
                     showForm();
                 }}
             >
-              Request Media Kit & Rates
+              {t("cta")}
             </Button>
           </div>
 
@@ -192,7 +192,7 @@ const Footer = () => {
                   text-neutral-950
                 "
               >
-                Navigation
+                {t("navigation")}
               </span>
 
               <ul className="space-y-2 font-light">
@@ -227,7 +227,7 @@ const Footer = () => {
                   text-neutral-950
                 "
               >
-                Official Socials
+                {t("socials")}
               </span>
 
               <ul className="space-y-2 font-light">
@@ -274,7 +274,7 @@ const Footer = () => {
                   text-neutral-950
                 "
               >
-                Executive Contact
+                {t("contact")}
               </span>
 
               <div
@@ -348,8 +348,7 @@ const Footer = () => {
         >
           {/* Copyright */}
           <div>
-            © {currentYear} Nasser. All Rights Reserved. Crafted for
-            luxury brand representation.
+            {t("copyright", { year: currentYear })}
           </div>
 
           {/* Back To Top */}
@@ -369,7 +368,7 @@ const Footer = () => {
               hover:text-black
             "
           >
-            <span>Back to top</span>
+            <span>{t("backToTop")}</span>
 
             <div
               className="

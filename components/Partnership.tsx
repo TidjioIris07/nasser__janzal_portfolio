@@ -1,6 +1,7 @@
 "use client";
 
 import { showForm } from "@/utils/utils";
+import { useTranslations } from "next-intl";
 import Button from "./ui/Button";
 import PartnerCard from "./ui/PartnerCard";
 
@@ -69,6 +70,17 @@ const PARTNER: Partner[] = [
 ];
 
 const Partnership = () => {
+    const t = useTranslations("partnerships");
+    const partnerNames = useTranslations("partners");
+    const partners = PARTNER.map((partner, index) => ({
+        ...partner,
+        name: partnerNames(["ebms", "realEstate", "advisor", "expert", "positive", "easyway"][index]),
+        location: partnerNames("location"),
+        details: [
+            t(["ebms1", "realEstate1", "advisor1", "expert1", "positive1", "easyway1"][index]),
+            t(["ebms2", "realEstate2", "advisor2", "expert2", "positive2", "easyway2"][index]),
+        ],
+    }));
     return (
         <section
             id="partnerships"
@@ -116,7 +128,7 @@ const Partnership = () => {
                                 whitespace-nowrap
                             "
                         >
-                            <span>03 / Brand Collaborations &amp; Timeline</span>
+                            <span>{t("eyebrow")}</span>
                         </div>
 
                         <h2
@@ -130,7 +142,7 @@ const Partnership = () => {
                                 lg:text-6xl
                             "
                         >
-                            Brand Partnerships
+                            {t("title")}
                         </h2>
                     </div>
 
@@ -144,9 +156,7 @@ const Partnership = () => {
                             sm:text-base
                         "
                     >
-                        Collaborating with premier Dubai business setup, corporate
-                        consultancy, and luxury real estate enterprises as an official
-                        UAE brand ambassador and digital visionary.
+                        {t("intro")}
                     </p>
                 </div>
 
@@ -166,7 +176,7 @@ const Partnership = () => {
                     />
 
                     <div className="space-y-8">
-                        {PARTNER.map((partner) => (
+                        {partners.map((partner) => (
                             <div
                                 key={partner.name}
                                 className="group relative space-x-1.5"
@@ -201,15 +211,15 @@ const Partnership = () => {
                 <div className="mt-20 p-8 sm:p-12 rounded-3xl bg-neutral-100/80 border border-neutral-200/80 text-neutral-900 flex flex-col sm:flex-row items-center justify-between gap-8 shadow-xs">
                   <div>
                     <span className="text-[11px] font-semibold tracking-[0.25em] uppercase text-neutral-500 block mb-2">
-                        Brand Ambassadorship & Partnerships
+                        {t("ctaEyebrow")}
                     </span>
 
                     <h4 className="font-brand text-2xl sm:text-3xl font-extrabold text-neutral-950 leading-tight uppercase">
-                        Partner with Nasser for your next UAE brand activation?
+                        {t("ctaTitle")}
                     </h4>
 
                     <p className="text-xs sm:text-sm text-neutral-600 font-light mt-2 max-w-xl">
-                        Available for strategic brand ambassadorships, keynote speaking, commercial real estate showcases, and bespoke digital campaigns.
+                        {t("ctaDescription")}
                     </p>
                   </div>
 
@@ -219,7 +229,7 @@ const Partnership = () => {
                         showForm();
                     }}
                   >
-                    Request Media Kit & Rates
+                    {t("cta")}
                   </Button>
                 </div>
 

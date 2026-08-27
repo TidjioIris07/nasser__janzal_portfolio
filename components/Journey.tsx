@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 const Journey = () => {
+  const t = useTranslations("journey");
   return (
     <section
       id="journey"
@@ -51,7 +53,7 @@ const Journey = () => {
                 text-neutral-600
               "
             >
-              <span>01 / Legacy &amp; Evolution</span>
+              <span>{t("eyebrow")}</span>
             </div>
 
             <h2
@@ -66,7 +68,7 @@ const Journey = () => {
                 lg:text-6xl
               "
             >
-              The Journey
+              {t("title")}
             </h2>
           </div>
 
@@ -80,9 +82,7 @@ const Journey = () => {
               sm:text-base
             "
           >
-            A narrative of relentless ambition, uncompromising aesthetic
-            standards, and enduring cultural impact in the heart of the
-            United Arab Emirates.
+            {t("intro")}
           </p>
         </div>
 
@@ -103,10 +103,10 @@ const Journey = () => {
         "
       >
         {/* Background Image */}
-        <div className="pointer-events-none absolute inset-0 z-0">
+        <div style={{ position: "absolute" }} className="pointer-events-none inset-0 z-0">
           <Image
             src="/images/deskPhoto.avif"
-            alt="Nasser Seated with Laptop"
+            alt={t("imageAlt")}
             fill
             priority={false}
             sizes="(max-width: 1440px) 100vw, 1440px"
@@ -157,7 +157,7 @@ const Journey = () => {
               text-neutral-500
             "
           >
-            Core Philosophy
+            {t("philosophy")}
           </span>
 
           <blockquote
@@ -174,8 +174,7 @@ const Journey = () => {
               lg:text-[42px]
             "
           >
-            “True influence is not about being seen everywhere—it is about
-            creating an unmistakable presence that inspires elevation.”
+            {t("quote")}
           </blockquote>
 
           <div className="mt-8 flex items-center gap-4">
@@ -190,7 +189,7 @@ const Journey = () => {
                 text-neutral-800
               "
             >
-              Nasser — Dubai, UAE
+              {t("signature")}
             </span>
           </div>
         </div>

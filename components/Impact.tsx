@@ -1,16 +1,17 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import VideoCarousel from "./ui/VideoCarousel";
 
-const Data = [
-  { region: "United Arab Emirates", percentage: 54 },
-  { region: "Saudi Arabia & GCC", percentage: 28 },
-  { region: "UK & Western Europe", percentage: 12 },
-  { region: "Global / USA", percentage: 6 },
-];
-
 const Impact = () => {
+  const t = useTranslations("impact");
+  const data = [
+    { region: t("uae"), percentage: 54 },
+    { region: t("gcc"), percentage: 28 },
+    { region: t("europe"), percentage: 12 },
+    { region: t("global"), percentage: 6 },
+  ];
   return (
     <section
       id="impact"
@@ -58,7 +59,7 @@ const Impact = () => {
                 text-neutral-600
               "
             >
-              <span>02 / Impact &amp; Analytics</span>
+              <span>{t("eyebrow")}</span>
             </div>
 
             <h2
@@ -73,7 +74,7 @@ const Impact = () => {
                 lg:text-6xl
               "
             >
-              Influence by the Numbers
+              {t("title")}
             </h2>
           </div>
 
@@ -87,8 +88,7 @@ const Impact = () => {
               sm:text-base
             "
           >
-            High-intent audience resonance driven by authentic community
-            connection and prime regional influence.
+            {t("intro")}
           </p>
         </div>
 
@@ -137,7 +137,7 @@ const Impact = () => {
                     sm:text-2xl
                   "
                 >
-                  Audience Geographic Distribution
+                  {t("distribution")}
                 </h3>
 
                 <p
@@ -149,8 +149,7 @@ const Impact = () => {
                     sm:text-sm
                   "
                 >
-                  Verified analytics across core luxury and lifestyle
-                  demographics.
+                  {t("analytics")}
                 </p>
               </div>
 
@@ -169,13 +168,13 @@ const Impact = () => {
                   md:self-auto
                 "
               >
-                GCC Focused (82%+)
+                {t("focus")}
               </span>
             </div>
 
             {/* Data */}
             <div className="space-y-6">
-              {Data.map((item, index) => (
+              {data.map((item, index) => (
                 <motion.div
                   key={item.region}
                   initial={{ opacity: 0, y: 15 }}

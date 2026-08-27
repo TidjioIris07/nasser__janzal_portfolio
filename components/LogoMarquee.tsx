@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 const LOGOS = [
   "Advisor Zone",
@@ -12,15 +13,24 @@ const LOGOS = [
 ];
 
 const LogoMarquee = () => {
+  const t = useTranslations("marquee");
   const marqueeItems = [...LOGOS, ...LOGOS];
+  const logoLabels = [
+    t("advisorZone"),
+    t("easyway"),
+    t("expertPlus"),
+    t("positiveZone"),
+    t("ebms"),
+    t("ebmsRealEstate"),
+  ];
 
   return (
     <section
-      aria-label="Brands and ventures Nasser has been featured with"
+      aria-label={t("label")}
       className="relative overflow-hidden border-t border-b border-black/[0.06] bg-white py-16"
     >
       <p className="mb-10 text-center text-[10px] font-semibold uppercase tracking-[0.4em] text-black/40 sm:text-xs">
-        As Seen In &amp; Ventures
+        {t("title")}
       </p>
 
       {/* Narrower marquee viewport */}
@@ -46,7 +56,7 @@ const LogoMarquee = () => {
           "
           style={{ animationDuration: "36s" }}
         >
-          {marqueeItems.map((logo, index) => (
+              {marqueeItems.map((logo, index) => (
             <div
               key={`${logo}-${index}`}
               className="
@@ -60,7 +70,7 @@ const LogoMarquee = () => {
             >
               <Image
                 src={`/images/${logo}.avif`}
-                alt={index < LOGOS.length ? logo : ""}
+                alt={index < LOGOS.length ? logoLabels[index] : ""}
                 width={160}
                 height={64}
                 sizes="(max-width: 640px) 150px, (max-width: 1024px) 190px, 220px"

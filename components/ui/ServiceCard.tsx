@@ -187,8 +187,8 @@ const ServiceCard = ({
           "
         >
           <div
+            style={{ position: "relative" }}
             className="
-              relative
               h-[calc(100%+2px)]
               w-64
               overflow-hidden

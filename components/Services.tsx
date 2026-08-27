@@ -1,6 +1,7 @@
 "use client";
 
 import { showForm } from "@/utils/utils";
+import { useTranslations } from "next-intl";
 import ServiceCard from "./ui/ServiceCard";
 
 interface Service {
@@ -49,6 +50,12 @@ const SERVICES: Service[] = [
 ];
 
 const Services = () => {
+  const t = useTranslations("services");
+  const services = SERVICES.map((service, index) => ({
+    ...service,
+    title: t(["ugcTitle", "modelingTitle", "actingTitle", "campaignsTitle", "reelsTitle", "longTermTitle"][index]),
+    description: t(["ugcDescription", "modelingDescription", "actingDescription", "campaignsDescription", "reelsDescription", "longTermDescription"][index]),
+  }));
   return (
     <section
       id="services"
@@ -97,7 +104,7 @@ const Services = () => {
                     "
                 >
                     <span>
-                        04 / Core Services & Offerings
+                        {t("eyebrow")}
                     </span>
                 </div>
 
@@ -113,7 +120,7 @@ const Services = () => {
                 lg:text-6xl
               "
             >
-              What I Bring To The Table
+              {t("title")}
             </h2>
           </div>
 
@@ -127,14 +134,13 @@ const Services = () => {
               sm:text-base
             "
           >
-            Delivering high-impact brand campaigns, modeling, acting, and
-            executive influencer partnerships across the UAE and GCC.
+            {t("intro")}
           </p>
         </div>
 
         {/* Services */}
         <div className="w-full border-t border-neutral-200/80">
-          {SERVICES.map((service, index) => (
+          {services.map((service, index) => (
             <ServiceCard
               key={service.title}
               index={String(index + 1).padStart(2, "0")}

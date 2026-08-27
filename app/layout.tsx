@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale } from "next-intl/server";
 
 import { Plus_Jakarta_Sans, Syncopate, Syne } from "next/font/google";
 
@@ -30,21 +32,25 @@ export const metadata: Metadata = {
     "Official portfolio of Nasser — Leading Emirati Influencer, Dubai Influencer & Brand Ambassador based in Dubai and Al Ain, UAE.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
   return (
     <html
-      lang="en"
+      lang={locale}
+      dir={locale === "ar" ? "rtl" : "ltr"}
       className={`${plusJakartaSans.variable} ${syncopate.variable} ${syne.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-black text-white">
-        <Preloader />
-        <NavBar />
-        <Hero />
-        {children}
+        <NextIntlClientProvider>
+          <Preloader />
+          <NavBar />
+          <Hero />
+          {children}
+        </NextIntlClientProvider>
       </body>
     </html>
   );

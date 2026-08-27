@@ -5,11 +5,15 @@ import Image from "next/image";
 import Button from "./ui/Button";
 import { ArrowDown } from "lucide-react";
 import gsap from "gsap";
+import { useTranslations } from "next-intl";
 
 const MARQUEE_TEXT =
   "INFLUENCER • CREATOR • ENTREPRENEUR • BRAND AMBASSADOR • MEDIA PERSONALITY • PUBLIC FIGURE • LIFESTYLE • PARTNERSHIPS • EVENTS • UAE • ";
 
 const Hero = () => {
+  const t = useTranslations("hero");
+  const brand = useTranslations("brand");
+  const accessibility = useTranslations("accessibility");
   const heroRef = useRef<HTMLElement>(null);
 
   /* Scroll animation refs */
@@ -956,7 +960,7 @@ const Hero = () => {
                 animate-marquee
               "
             >
-              {MARQUEE_TEXT}
+              {t("marquee")}
             </span>
 
             <span
@@ -973,7 +977,7 @@ const Hero = () => {
                 sm:text-[clamp(140px,18vw,320px)]
               "
             >
-              {MARQUEE_TEXT}
+              {t("marquee")}
             </span>
           </div>
         </div>
@@ -1023,8 +1027,8 @@ const Hero = () => {
             "
           >
             <div
+              style={{ position: "relative" }}
               className="
-                relative
                 flex
                 h-[58vh]
                 w-full
@@ -1040,7 +1044,7 @@ const Hero = () => {
             >
               <Image
                 src="/images/nasir.avif"
-                alt="Nasser — UAE Influencer & Visionary"
+                alt={t("portraitAlt")}
                 fill
                 priority
                 loading="eager"
@@ -1179,7 +1183,7 @@ const Hero = () => {
                   />
 
                   <span>
-                    UAE • DUBAI
+                    {t("location")}
                   </span>
                 </div>
 
@@ -1200,15 +1204,12 @@ const Hero = () => {
                     lg:text-8xl
                   "
                 >
-                  NASSER
+                  {brand("name")}
                 </h1>
 
                 {/* SEO */}
                 <h2 className="sr-only">
-                  Influencer Nasser — Top
-                  Emarati Influencer & Dubai
-                  Influencer in Dubai and Al
-                  Ain, UAE
+                  {accessibility("heroTitle")}
                 </h2>
 
                 {/* ROLE */}
@@ -1228,8 +1229,7 @@ const Hero = () => {
                     md:text-sm
                   "
                 >
-                  CREATOR • BRAND AMBASSADOR •
-                  VISIONARY
+                  {t("role")}
                 </p>
               </div>
 
@@ -1258,14 +1258,7 @@ const Hero = () => {
                     md:text-[17px]
                   "
                 >
-                  An influential Emirati voice
-                  shaping{" "}
-                  <strong className="font-semibold text-neutral-950">
-                    digital culture
-                  </strong>
-                  , enterprise growth, and
-                  luxury brand partnerships
-                  across the UAE.
+                  {t("description")}
                 </p>
 
                 {/* BUTTON */}
@@ -1318,7 +1311,7 @@ const Hero = () => {
                       md:ml-auto
                     "
                   >
-                    Discover My Story
+                    {t("discover")}
                   </Button>
                 </div>
               </div>
@@ -1380,7 +1373,7 @@ const Hero = () => {
               sm:text-[11px]
             "
           >
-            SCROLL TO EXPLORE
+            {t("scroll")}
           </span>
         </div>
       </div>

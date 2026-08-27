@@ -2,33 +2,23 @@
 
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
+import { useTranslations } from "next-intl";
 
 import Button from "./ui/Button";
 import LanguageSwitch from "./ui/LanguageSwitch";
 import { scrollToSection, showForm } from "@/utils/utils";
 
-const NAV_LINKS = [
-  {
-    label: "The Journey",
-    href: "#journey",
-  },
-  {
-    label: "Impact & Reach",
-    href: "#impact",
-  },
-  {
-    label: "Partnerships",
-    href: "#partnerships",
-  },
-  {
-    label: "Services",
-    href: "#services",
-  },
-];
-
 const SCROLL_THRESHOLD = 40;
 
 const NavBar = () => {
+  const t = useTranslations("nav");
+  const brand = useTranslations("brand");
+  const navLinks = [
+    { label: t("journey"), href: "#journey" },
+    { label: t("impact"), href: "#impact" },
+    { label: t("partnerships"), href: "#partnerships" },
+    { label: t("services"), href: "#services" },
+  ];
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -358,7 +348,7 @@ const NavBar = () => {
             }
           `}
         >
-          <span data-preloader-logo>NASSER</span>
+          <span data-preloader-logo>{brand("name")}</span>
 
           <span
             className={`
@@ -389,7 +379,7 @@ const NavBar = () => {
             xl:gap-10
           "
         >
-          {NAV_LINKS.map((link) => (
+          {navLinks.map((link) => (
             <a
               key={link.href}
               href={link.href}
@@ -447,7 +437,7 @@ const NavBar = () => {
               href="https://www.instagram.com/nasserjanzal"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Instagram Profile"
+              aria-label={t("instagram")}
               className={`
                 flex
                 h-9
@@ -476,7 +466,7 @@ const NavBar = () => {
               href="https://www.tiktok.com/@nasserjanzal"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="TikTok Profile"
+              aria-label={t("tiktok")}
               className={`
                 flex
                 h-9
@@ -509,7 +499,7 @@ const NavBar = () => {
                 showForm();
               }}
             >
-              Send An Enquiry
+              {t("enquiry")}
             </Button>
           </div>
         </div>
@@ -532,8 +522,8 @@ const NavBar = () => {
             }
             aria-label={
               menuOpen
-                ? "Close menu"
-                : "Toggle menu"
+                ? t("closeMenu")
+                : t("openMenu")
             }
             aria-expanded={menuOpen}
             className={`
@@ -610,7 +600,7 @@ const NavBar = () => {
           {/* NAVIGATION */}
 
           <nav className="flex flex-col">
-            {NAV_LINKS.map((link) => (
+            {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
@@ -663,7 +653,7 @@ const NavBar = () => {
                 text-neutral-400
               "
             >
-              Connect
+              {t("connect")}
             </span>
 
             <div className="flex items-center gap-2">
@@ -673,7 +663,7 @@ const NavBar = () => {
                 href="https://www.instagram.com/nasserjanzal"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Instagram Profile"
+                aria-label={t("instagram")}
                 className="
                   flex
                   h-10
@@ -700,7 +690,7 @@ const NavBar = () => {
                 href="https://www.tiktok.com/@nasserjanzal"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="TikTok Profile"
+                aria-label={t("tiktok")}
                 className="
                   flex
                   h-10
