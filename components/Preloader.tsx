@@ -1,164 +1,401 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
 
 interface PreloaderProps {
   onFinish?: () => void;
   onLogoMerge?: () => void;
 }
 
-export default function Preloader({ onFinish, onLogoMerge }: PreloaderProps) {
-  const [progress, setProgress] = useState(0);
-  const [phase, setPhase] = useState<
-    "loading" | "merging" | "wiping" | "done"
-  >("loading");
-  const [shouldRender, setShouldRender] = useState(true);
+export default function Preloader({
+  onFinish,
+  onLogoMerge,
+}: PreloaderProps) {
+  const curtainRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const subtitleRef = useRef<HTMLParagraphElement>(null);
+  const progressWrapRef = useRef<HTMLDivElement>(null);
+  const progressRef = useRef<HTMLDivElement>(null);
+  const progressTextRef = useRef<HTMLSpanElement>(null);
+
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
 
-    const duration = 2000;
-    const intervalMs = 20;
-    const totalSteps = duration / intervalMs;
-    let step = 0;
+    const curtain = curtainRef.current;
+    const title = titleRef.current;
+    const subtitle = subtitleRef.current;
+    const progressWrap = progressWrapRef.current;
+    const progress = progressRef.current;
+    const progressText = progressTextRef.current;
 
-    const timer = setInterval(() => {
-      step += 1;
+    if (
+      !curtain ||
+      !title ||
+      !subtitle ||
+      !progressWrap ||
+      !progress ||
+      !progressText
+    ) {
+      return;
+    }
 
-      const currentProgress = Math.min(
-        100,
-        Math.round((step / totalSteps) * 100)
+    const ctx = gsap.context(() => {
+      const progressValue = { value: 0 };
+
+      /*
+       * -------------------------------------------------------
+       * INITIAL STATES
+       * -------------------------------------------------------
+       */
+
+      // Full black screen.
+      gsap.set(curtain, {
+        yPercent: 0,
+      });
+
+      // NASSER enters from below, blurred and invisible.
+      gsap.set(title, {
+        y: 70,
+        opacity: 0,
+        filter: "blur(18px)",
+      });
+
+      // Subtitle follows slightly behind.
+      gsap.set(subtitle, {
+        y: 25,
+        opacity: 0,
+        filter: "blur(8px)",
+      });
+
+      // Progress starts empty.
+      gsap.set(progress, {
+        scaleX: 0,
+        transformOrigin: "left center",
+      });
+
+      gsap.set(progressWrap, {
+        opacity: 1,
+      });
+
+      /*
+       * -------------------------------------------------------
+       * INTRO
+       * -------------------------------------------------------
+       */
+
+      const intro = gsap.timeline();
+
+      intro.to(title, {
+        y: 0,
+        opacity: 1,
+        filter: "blur(0px)",
+        duration: 1.1,
+        ease: "power3.out",
+      });
+
+      intro.to(
+        subtitle,
+        {
+          y: 0,
+          opacity: 1,
+          filter: "blur(0px)",
+          duration: 0.8,
+          ease: "power3.out",
+        },
+        "-=0.65",
       );
 
-      setProgress(currentProgress);
+      /*
+       * -------------------------------------------------------
+       * PROGRESS
+       * -------------------------------------------------------
+       */
 
-      if (step >= totalSteps) {
-        clearInterval(timer);
+      const loading = gsap.to(progressValue, {
+        value: 100,
+        duration: 2.4,
+        ease: "power2.out",
 
-        setTimeout(() => {
-          setPhase("merging");
+        onUpdate: () => {
+          const value = Math.round(progressValue.value);
 
-          setTimeout(() => {
-            if (onLogoMerge) onLogoMerge();
+          gsap.set(progress, {
+            scaleX: progressValue.value / 100,
+          });
 
-            setPhase("wiping");
+          progressText.textContent = `${value}%`;
+        },
+      });
 
-            setTimeout(() => {
-              setPhase("done");
-              setShouldRender(false);
+      /*
+       * -------------------------------------------------------
+       * AFTER LOADING
+       * -------------------------------------------------------
+       */
+
+      loading.then(() => {
+        const outro = gsap.timeline();
+
+        /*
+         * Hide subtitle + progress.
+         */
+
+        outro.to(
+          [subtitle, progressWrap],
+          {
+            opacity: 0,
+            y: 10,
+            filter: "blur(5px)",
+            duration: 0.35,
+            ease: "power2.inOut",
+          },
+        );
+
+        /*
+         * ---------------------------------------------------
+         * MERGE NASSER INTO NAVBAR
+         * ---------------------------------------------------
+         */
+
+        outro.add(() => {
+          const target = document.querySelector(
+            "[data-preloader-logo]",
+          ) as HTMLElement | null;
+
+          if (!target) return;
+
+          const titleRect = title.getBoundingClientRect();
+          const targetRect = target.getBoundingClientRect();
+
+          const titleCenterX =
+            titleRect.left + titleRect.width / 2;
+
+          const titleCenterY =
+            titleRect.top + titleRect.height / 2;
+
+          const targetCenterX =
+            targetRect.left + targetRect.width / 2;
+
+          const targetCenterY =
+            targetRect.top + targetRect.height / 2;
+
+          const x = targetCenterX - titleCenterX;
+          const y = targetCenterY - titleCenterY;
+
+          const scaleX =
+            targetRect.width / titleRect.width;
+
+          const scaleY =
+            targetRect.height / titleRect.height;
+
+          gsap.to(title, {
+            x,
+            y,
+            scaleX,
+            scaleY,
+            duration: 0.99,
+            ease: "power3.inOut",
+            onStart: () => {
+              onLogoMerge?.();
+            },
+          });
+        });
+
+        /*
+         * ---------------------------------------------------
+         * BOTTOM → TOP
+         * ---------------------------------------------------
+         *
+         * The entire black curtain moves upward.
+         *
+         * This reveals the page from the bottom first.
+         */
+
+        outro.to(
+          curtain,
+          {
+            yPercent: -100,
+            duration: 1.5,
+            ease: "power4.inOut",
+
+            onComplete: () => {
+              setVisible(false);
               document.body.style.overflow = "";
-
-              if (onFinish) onFinish();
-            }, 900);
-          }, 800);
-        }, 200);
-      }
-    }, intervalMs);
+              onFinish?.();
+            },
+          },
+        );
+      });
+    }, curtainRef);
 
     return () => {
-      clearInterval(timer);
+      ctx.revert();
       document.body.style.overflow = "";
     };
   }, [onFinish, onLogoMerge]);
 
-  if (!shouldRender) return null;
-
-  const isMerging =
-    phase === "merging" || phase === "wiping" || phase === "done";
+  if (!visible) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black text-white pointer-events-none"
+      ref={curtainRef}
+      className="
+        preloader-curtain
+        fixed
+        inset-0
+        z-999
+        flex
+        h-100dvh
+        w-screen
+        flex-col
+        justify-between
+        overflow-hidden
+        bg-black
+        text-white
+        select-none
+        pointer-events-auto
+      "
       style={{
-        clipPath:
-          phase === "wiping" || phase === "done"
-            ? "polygon(100% 0, 100% 0, 100% 0, 100% 0)"
-            : "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
-        transitionProperty: "clip-path",
-        transitionDuration: "900ms",
-        transitionTimingFunction:
-          "cubic-bezier(0.77, 0, 0.175, 1)",
+        willChange: "transform",
+        backfaceVisibility: "hidden",
+        transform: "translate3d(0, 0, 0)",
       }}
     >
-{/* =========================
-    CENTERED BRAND
-========================== */}
-<div className="absolute inset-0 flex items-center justify-center px-6">
-  <div
-    className={`
-      flex flex-col items-stretch
-      transition-all duration-800
-      ease-[cubic-bezier(0.65,0,0.35,1)]
-      ${
-        isMerging
-          ? "fixed top-6 left-6 md:top-8 md:left-12 origin-top-left"
-          : ""
-      }
-    `}
-  >
-    {/* NASSER */}
-    <span
-      className="
-        self-end
-        uppercase
-        tracking-tighter
-        font-brand
-        font-semibold
-        leading-[0.8]
-        text-6xl
-        sm:text-8xl
-        md:text-9xl
-      "
-    >
-      NASSER
-    </span>
+      {/* =====================================================
+          TOP SPACER
+      ====================================================== */}
 
-    {/* AN EMIRATI INFLUENCER */}
-    <span
-      className={`
-        w-full
-        text-right
-        mt-4
-        text-[9px]
-        sm:text-xs
-        md:text-sm
-        font-display
-        tracking-[0.25em]
-        sm:tracking-[0.3em]
-        md:tracking-[0.35em]
-        text-zinc-400
-        uppercase
-        whitespace-nowrap
-        transition-opacity duration-300
-        ${isMerging ? "opacity-0" : "opacity-100"}
-      `}
-    >
-      AN EMIRATI INFLUENCER
-    </span>
-  </div>
-</div>
+      <div className="h-16 w-full shrink-0 sm:h-24" />
 
-      {/* =========================
-          PROGRESS
-      ========================== */}
+      {/* =====================================================
+          CENTER BRAND
+      ====================================================== */}
+
       <div
-        className={`
-          absolute bottom-0 left-0 w-full
-          px-6 md:px-12 pb-8
-          flex flex-col gap-3
-          transition-opacity duration-300
-          ${phase === "loading" ? "opacity-100" : "opacity-0"}
-        `}
+        className="
+          pointer-events-none
+          absolute
+          inset-0
+          flex
+          items-center
+          justify-center
+          px-6
+        "
       >
-        <div className="flex items-center justify-between text-xs font-mono text-zinc-400">
+        <div className="inline-flex flex-col items-end">
+          {/* NASSER */}
+
+          <h1
+            ref={titleRef}
+            className="
+              font-brand
+              text-[clamp(48px,14vw,140px)]
+              font-bold
+              uppercase
+              leading-none
+              tracking-[-0.04em]
+            "
+            style={{
+              willChange:
+                "transform, opacity, filter",
+            }}
+          >
+            NASSER
+          </h1>
+
+          {/* SUBTITLE */}
+
+          <p
+            ref={subtitleRef}
+            className="
+              mt-2
+              self-end
+              whitespace-nowrap
+              text-right
+              font-body
+              text-[10px]
+              font-medium
+              uppercase
+              tracking-[0.25em]
+              text-white/60
+              sm:text-xs
+              md:text-sm
+            "
+            style={{
+              willChange:
+                "transform, opacity, filter",
+            }}
+          >
+            AN EMIRATI INFLUENCER
+          </p>
+        </div>
+      </div>
+
+      {/* =====================================================
+          PROGRESS
+      ====================================================== */}
+
+      <div
+        ref={progressWrapRef}
+        className="
+          relative
+          z-20
+          mt-auto
+          w-full
+          shrink-0
+          px-5
+          pb-7
+          sm:px-10
+          sm:pb-9
+          hidden
+          md:block
+        "
+      >
+        <div
+          className="
+            mb-2.5
+            flex
+            items-center
+            justify-between
+            font-mono
+            text-[11px]
+            tracking-widest
+            text-white/70
+            sm:text-xs
+          "
+        >
           <span>0%</span>
-          <span className="font-bold text-white">{progress}%</span>
+
+          <span
+            ref={progressTextRef}
+            className="font-semibold text-white/90"
+          >
+            0%
+          </span>
         </div>
 
-        <div className="h-[2px] w-full bg-zinc-800 overflow-hidden rounded-full">
+        <div
+          className="
+            relative
+            h-0.5
+            w-full
+            overflow-hidden
+            bg-white/15
+          "
+        >
           <div
-            className="h-full bg-white transition-all duration-75 ease-out"
-            style={{ width: `${progress}%` }}
+            ref={progressRef}
+            className="
+              absolute
+              inset-y-0
+              left-0
+              w-full
+              origin-left
+              bg-white
+            "
           />
         </div>
       </div>

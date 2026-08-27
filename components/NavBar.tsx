@@ -62,7 +62,7 @@ const NavBar = () => {
         transition-all duration-500 ease-out
         ${
           scrolled
-            ? "border-b border-black/[0.08] bg-white/80 shadow-sm shadow-black/[0.04] backdrop-blur-2xl"
+            ? "border-b border-black/8 bg-white/80 shadow-sm shadow-black/4 backdrop-blur-2xl"
             : "border-b border-transparent bg-transparent"
         }
       `}
@@ -87,21 +87,15 @@ const NavBar = () => {
         ======================================================= */}
 
         <a
-          href="#hero"
-          onClick={() => setMenuOpen(false)}
+        onClick={(event) => {
+          setMenuOpen(false)
+          scrollToSection(event, "#hero")
+          
+          }}
           className={`
-            group
-            flex
-            shrink-0
-            items-center
-            gap-1.5
-            font-brand
-            text-xl
-            font-bold
-            uppercase
-            tracking-[-0.04em]
-            transition-all
-            duration-500
+            group flex shrink-0 items-center gap-1.5
+            font-brand text-xl font-bold uppercase
+            tracking-[-0.04em] transition-all duration-500
             md:text-2xl
             ${
               scrolled
@@ -110,15 +104,11 @@ const NavBar = () => {
             }
           `}
         >
-          <span>NASSER</span>
+          <span data-preloader-logo>NASSER</span>
 
           <span
             className={`
-              h-2
-              w-2
-              rounded-full
-              transition-transform
-              duration-300
+              h-2 w-2 rounded-full transition-transform duration-300
               group-hover:scale-125
               ${scrolled ? "bg-black" : "bg-white"}
             `}
@@ -294,8 +284,8 @@ const NavBar = () => {
           }
           ${
             scrolled
-              ? "border-black/[0.06] bg-white"
-              : "border-black/[0.06] bg-[#fafafa]"
+              ? "border-black/6 bg-white"
+              : "border-black/6 bg-[#fafafa]"
           }
         `}
       >
@@ -329,7 +319,7 @@ const NavBar = () => {
                 className="
                   group
                   flex
-                  min-h-[72px]
+                  min-h-18
                   items-center
                   border-b
                   border-neutral-200/60
