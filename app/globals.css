@@ -5,6 +5,7 @@
   --foreground: #ffffff;
 }
 
+/* Tailwind CSS v4 theme directive; keep this alongside the design tokens below. */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -52,4 +53,14 @@ body {
 
 .scroll-arrow-bounce {
   animation: scroll-arrow-bounce 1.4s ease-in-out infinite;
+}
+
+::selection {
+  background: #000;
+  color: #fff;
+}
+
+::-moz-selection {
+  background: #000;
+  color: #fff;
 }

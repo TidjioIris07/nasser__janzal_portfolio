@@ -1,6 +1,5 @@
 import Footer from '@/components/Footer'
 import Form from '@/components/Form'
-import Hero from '@/components/Hero'
 import Impact from '@/components/Impact'
 import Journey from '@/components/Journey'
 import LogoMarquee from '@/components/LogoMarquee'
