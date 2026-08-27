@@ -21,7 +21,7 @@ const WhatsAppChat = () => {
 
   return (
     <div
-      dir={isArabic ? "rtl" : "ltr"}
+      dir="ltr"
       className={`fixed bottom-5 z-90 flex flex-col gap-3 sm:bottom-6 ${
         isArabic
           ? "left-5 items-start sm:left-6"
@@ -30,6 +30,7 @@ const WhatsAppChat = () => {
     >
       {isOpen && (
         <section
+          dir={isArabic ? "rtl" : "ltr"}
           role="dialog"
           aria-label={t("dialogLabel")}
           className="w-[min(22rem,calc(100vw-2.5rem))] overflow-hidden rounded-3xl border border-neutral-200 bg-white text-neutral-900 shadow-[0_20px_60px_rgba(0,0,0,0.2)]"
