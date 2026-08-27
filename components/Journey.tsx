@@ -1,10 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 const Journey = () => {
   const t = useTranslations("journey");
+  const isArabic = useLocale() === "ar";
   return (
     <section
       id="journey"
@@ -109,26 +110,28 @@ const Journey = () => {
             alt={t("imageAlt")}
             fill
             priority={false}
+            loading="lazy"
             sizes="(max-width: 1440px) 100vw, 1440px"
-            className="
+            className={`
               object-cover
               object-right
               opacity-95
               md:object-top-right
-            "
+              ${isArabic ? "-scale-x-100" : ""}
+            `}
           />
 
           {/* Horizontal Gradient */}
           <div
-            className="
+            className={`
               absolute
               inset-0
-              bg-linear-to-r
+              ${isArabic ? "bg-linear-to-l" : "bg-linear-to-r"}
               from-neutral-50
               via-neutral-50/80
               to-transparent
               sm:via-neutral-50/65
-            "
+            `}
           />
 
           {/* Vertical Gradient */}

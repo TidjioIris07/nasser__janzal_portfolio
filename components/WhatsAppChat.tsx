@@ -62,6 +62,7 @@ const WhatsAppChat = () => {
                   onError={() => setImageFailed(true)}
                   width={44}
                   height={44}
+                  loading="lazy"
                   className="h-11 w-11 shrink-0 rounded-full object-cover"
                 />
               )}

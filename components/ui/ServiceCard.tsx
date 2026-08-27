@@ -200,6 +200,7 @@ const ServiceCard = ({
               src={image}
               alt={title}
               fill
+              loading="lazy"
               sizes="
                 (max-width: 640px) 256px,
                 (max-width: 768px) 320px,

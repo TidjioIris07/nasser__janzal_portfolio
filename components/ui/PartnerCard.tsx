@@ -30,6 +30,8 @@ const PartnerCard = ({
                             src={photo}
                             alt={`${name} logo`}
                             fill
+                            loading="lazy"
+                            sizes="(max-width: 639px) 144px, 176px"
                             className="object-contain p-2.5"
                         />
                     </div>
