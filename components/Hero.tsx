@@ -1,9 +1,13 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+
 import Image from "next/image";
+
 import Button from "./ui/Button";
+
 import { ArrowDown } from "lucide-react";
+
 import gsap from "gsap";
 
 const MARQUEE_TEXT =
@@ -11,10 +15,19 @@ const MARQUEE_TEXT =
 
 const Hero = () => {
   const heroRef = useRef<HTMLElement>(null);
+
+  /* Scroll animation refs */
   const portraitRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const marqueeRef = useRef<HTMLDivElement>(null);
   const scrollIndicatorRef = useRef<HTMLDivElement>(null);
+
+  /* Initial reveal refs */
+  const locationRef = useRef<HTMLDivElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const roleRef = useRef<HTMLParagraphElement>(null);
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
+  const buttonRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const hero = heroRef.current;
@@ -23,32 +36,135 @@ const Hero = () => {
     const marquee = marqueeRef.current;
     const scrollIndicator = scrollIndicatorRef.current;
 
+    const location = locationRef.current;
+    const heading = headingRef.current;
+    const role = roleRef.current;
+    const description = descriptionRef.current;
+    const button = buttonRef.current;
+
     if (
       !hero ||
       !portrait ||
       !content ||
       !marquee ||
-      !scrollIndicator
+      !scrollIndicator ||
+      !location ||
+      !heading ||
+      !role ||
+      !description ||
+      !button
     ) {
       return;
     }
 
-    if (
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
-      return;
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    /*
+     * ----------------------------------
+     * ELEMENT GROUPS
+     * ----------------------------------
+     */
+
+    const revealElements = [
+      marquee,
+      location,
+      heading,
+      role,
+      description,
+      button,
+      scrollIndicator,
+    ];
+
+    /*
+     * ----------------------------------
+     * INITIAL HERO REVEAL
+     * ----------------------------------
+     */
+
+    if (!reduceMotion) {
+      gsap.set(revealElements, {
+        y: 24,
+        opacity: 0,
+      });
+
+      const reveal = gsap.timeline({
+        defaults: {
+          ease: "power3.out",
+        },
+      });
+
+      reveal
+        .to(marquee, {
+          y: 0,
+          opacity: 1,
+          duration: 0.8,
+        })
+        .to(
+          location,
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.7,
+          },
+          "-=0.55"
+        )
+        .to(
+          heading,
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.75,
+          },
+          "-=0.5"
+        )
+        .to(
+          role,
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.65,
+          },
+          "-=0.48"
+        )
+        .to(
+          description,
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.7,
+          },
+          "-=0.4"
+        )
+        .to(
+          button,
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.65,
+          },
+          "-=0.4"
+        )
+        .to(
+          scrollIndicator,
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.7,
+          },
+          "-=0.35"
+        );
     }
 
-    /* ----------------------------------
-       CONFIG
-    ---------------------------------- */
+    /*
+     * ----------------------------------
+     * SCROLL CONFIG
+     * ----------------------------------
+     */
 
     const fadeDistance = 1100;
     const smoothing = 0.075;
-
-    /* ----------------------------------
-       STATE
-    ---------------------------------- */
 
     let targetProgress = 0;
     let currentProgress = 0;
@@ -59,12 +175,14 @@ const Hero = () => {
     let touchY: number | null = null;
     let rafId: number | null = null;
 
-    /* ----------------------------------
-       HELPERS
-    ---------------------------------- */
-
     const clamp = (value: number) =>
       Math.min(1, Math.max(0, value));
+
+    /*
+     * ----------------------------------
+     * QUICK SETTERS
+     * ----------------------------------
+     */
 
     const setPortraitY = gsap.quickSetter(
       portrait,
@@ -107,26 +225,36 @@ const Hero = () => {
       "opacity"
     );
 
-    /* ----------------------------------
-       RENDER
-    ---------------------------------- */
+    /*
+     * ----------------------------------
+     * SCROLL RENDER
+     * ----------------------------------
+     */
 
     const render = (progress: number) => {
       const p = clamp(progress);
 
-      // Portrait moves down + fades
+      /*
+       * Portrait
+       */
       setPortraitY(p * 130);
       setPortraitOpacity(1 - p);
 
-      // Main content zooms IN + fades
+      /*
+       * Main content
+       */
       setContentScale(1 + p * 0.8);
       setContentOpacity(1 - p);
 
-      // Marquee zooms IN + fades
+      /*
+       * Marquee
+       */
       setMarqueeScale(1 + p * 0.5);
       setMarqueeOpacity(1 - p);
 
-      // Indicator disappears after first interaction
+      /*
+       * Scroll indicator
+       */
       if (!hasStartedScrolling) {
         setIndicatorScale(1);
         setIndicatorOpacity(1);
@@ -138,16 +266,213 @@ const Hero = () => {
 
     render(0);
 
-    /* ----------------------------------
-       SCROLL LOCK
-    ---------------------------------- */
+    /*
+     * ----------------------------------
+     * RESTORE HERO
+     *
+     * This is the important part.
+     *
+     * When scrollToSection("#hero") is
+     * called, we reset the internal
+     * progress AND animate every element
+     * back to its visible state.
+     * ----------------------------------
+     */
+
+    const restoreHero = () => {
+      targetProgress = 0;
+      currentProgress = 0;
+      hasStartedScrolling = false;
+
+      /*
+       * Stop anything currently running
+       */
+      gsap.killTweensOf([
+        portrait,
+        content,
+        marquee,
+        scrollIndicator,
+        location,
+        heading,
+        role,
+        description,
+        button,
+      ]);
+
+      /*
+       * Immediately restore the scroll-driven
+       * transforms.
+       */
+      gsap.set(portrait, {
+        y: 0,
+        opacity: 1,
+      });
+
+      gsap.set(content, {
+        scale: 1,
+        opacity: 1,
+      });
+
+      gsap.set(marquee, {
+        scale: 1,
+        opacity: 1,
+      });
+
+      gsap.set(scrollIndicator, {
+        scale: 1,
+        opacity: 1,
+      });
+
+      /*
+       * Put the UI elements slightly below
+       * their natural position, then bring
+       * them back individually.
+       */
+      if (!reduceMotion) {
+        gsap.set(
+          [
+            marquee,
+            location,
+            heading,
+            role,
+            description,
+            button,
+            scrollIndicator,
+          ],
+          {
+            y: 24,
+            opacity: 0,
+          }
+        );
+
+        const restore = gsap.timeline({
+          defaults: {
+            ease: "power3.out",
+          },
+        });
+
+        restore
+          .to(
+            marquee,
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.7,
+            }
+          )
+          .to(
+            location,
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.6,
+            },
+            "-=0.45"
+          )
+          .to(
+            heading,
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.65,
+            },
+            "-=0.42"
+          )
+          .to(
+            role,
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.55,
+            },
+            "-=0.4"
+          )
+          .to(
+            description,
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.6,
+            },
+            "-=0.36"
+          )
+          .to(
+            button,
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.55,
+            },
+            "-=0.35"
+          )
+          .to(
+            scrollIndicator,
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.6,
+            },
+            "-=0.3"
+          );
+      } else {
+        gsap.set(
+          [
+            marquee,
+            location,
+            heading,
+            role,
+            description,
+            button,
+            scrollIndicator,
+          ],
+          {
+            y: 0,
+            opacity: 1,
+          }
+        );
+      }
+
+      /*
+       * Lock the fake hero scroll again.
+       */
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+
+      locked = true;
+    };
+
+    /*
+     * ----------------------------------
+     * EXPOSE RESTORE FUNCTION
+     * ----------------------------------
+     *
+     * Your scrollToSection function can
+     * call:
+     *
+     * window.dispatchEvent(
+     *   new Event("hero:restore")
+     * )
+     */
+
+    window.addEventListener(
+      "hero:restore",
+      restoreHero
+    );
+
+    /*
+     * ----------------------------------
+     * SCROLL LOCK
+     * ----------------------------------
+     */
 
     const lockScroll = () => {
       if (locked) return;
 
       locked = true;
 
-      document.documentElement.style.overflow = "hidden";
+      document.documentElement.style.overflow =
+        "hidden";
+
       document.body.style.overflow = "hidden";
     };
 
@@ -161,21 +486,23 @@ const Hero = () => {
     };
 
     /*
-     * Start locked when page is at the top.
+     * Initially lock hero
      */
     if (window.scrollY <= 1) {
       lockScroll();
     }
 
-    /* ----------------------------------
-       APPLY DELTA
-    ---------------------------------- */
+    /*
+     * ----------------------------------
+     * APPLY DELTA
+     * ----------------------------------
+     */
 
     const applyDelta = (delta: number) => {
       if (delta === 0) return;
 
       /*
-       * First downward interaction.
+       * Start scrolling
        */
       if (delta > 0 && !hasStartedScrolling) {
         hasStartedScrolling = true;
@@ -189,24 +516,22 @@ const Hero = () => {
         });
       }
 
-      /*
-       * Limit very large wheel/key jumps.
-       */
       const safeDelta = Math.max(
         -80,
         Math.min(80, delta)
       );
 
       targetProgress = clamp(
-        targetProgress + safeDelta / fadeDistance
+        targetProgress +
+          safeDelta / fadeDistance
       );
 
       /*
-       * Hero completely faded.
-       * Give scrolling back to browser.
+       * Fully faded out
        */
       if (targetProgress >= 1) {
         targetProgress = 1;
+
         currentProgress = Math.min(
           currentProgress,
           1
@@ -216,15 +541,13 @@ const Hero = () => {
       }
 
       /*
-       * Hero completely restored.
+       * Back to hero
        */
       if (targetProgress <= 0) {
         targetProgress = 0;
 
-        /*
-         * Keep the browser at the very top while
-         * the hero is taking control.
-         */
+        currentProgress = 0;
+
         window.scrollTo({
           top: 0,
           behavior: "auto",
@@ -234,27 +557,25 @@ const Hero = () => {
       }
     };
 
-    /* ----------------------------------
-       WHEEL
-    ---------------------------------- */
+    /*
+     * ----------------------------------
+     * WHEEL
+     * ----------------------------------
+     */
 
     const handleWheel = (event: WheelEvent) => {
-      /*
-       * When hero is locked, wheel controls
-       * the animation instead of the browser.
-       */
       if (locked) {
         event.preventDefault();
+
         applyDelta(event.deltaY);
+
         return;
       }
 
       /*
-       * IMPORTANT:
-       *
-       * If the hero is already faded and the user
-       * reaches the top while scrolling upward,
-       * immediately start reversing the animation.
+       * If the user is at the top and
+       * starts scrolling upward, restore
+       * the hero.
        */
       if (
         event.deltaY < 0 &&
@@ -268,11 +589,15 @@ const Hero = () => {
       }
     };
 
-    /* ----------------------------------
-       KEYBOARD
-    ---------------------------------- */
+    /*
+     * ----------------------------------
+     * KEYBOARD
+     * ----------------------------------
+     */
 
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = (
+      event: KeyboardEvent
+    ) => {
       const isUpKey =
         event.key === "ArrowUp" ||
         event.key === "PageUp";
@@ -284,12 +609,6 @@ const Hero = () => {
       const isSpace =
         event.key === " " ||
         event.key === "Spacebar";
-
-      /*
-       * --------------------------------
-       * HERO IS LOCKED
-       * --------------------------------
-       */
 
       if (locked) {
         let delta = 0;
@@ -313,7 +632,9 @@ const Hero = () => {
 
           case " ":
           case "Spacebar":
-            delta = event.shiftKey ? -220 : 220;
+            delta = event.shiftKey
+              ? -220
+              : 220;
             break;
 
           case "Home":
@@ -325,23 +646,15 @@ const Hero = () => {
         }
 
         event.preventDefault();
+
         applyDelta(delta);
 
         return;
       }
 
       /*
-       * --------------------------------
-       * HERO IS UNLOCKED
-       * --------------------------------
-       *
-       * This is the important fix.
-       *
-       * When the hero has faded out and the user
-       * presses ArrowUp/PageUp at the top, we
-       * take control back and reverse the animation.
+       * Go back into the hero
        */
-
       if (
         isUpKey &&
         window.scrollY <= 1 &&
@@ -352,14 +665,16 @@ const Hero = () => {
         lockScroll();
 
         applyDelta(
-          event.key === "PageUp" ? -220 : -70
+          event.key === "PageUp"
+            ? -220
+            : -70
         );
 
         return;
       }
 
       /*
-       * Home should also restore the hero.
+       * Home key
        */
       if (
         event.key === "Home" &&
@@ -372,36 +687,27 @@ const Hero = () => {
           behavior: "auto",
         });
 
-        lockScroll();
-
-        targetProgress = 0;
-        currentProgress = 0;
-
-        render(0);
+        restoreHero();
 
         return;
       }
 
-      /*
-       * Normal browser scrolling remains untouched
-       * when the user is further down the page.
-       */
       if (isDownKey || isSpace) {
         return;
       }
     };
 
-    /* ----------------------------------
-       NORMAL SCROLL
-    ---------------------------------- */
+    /*
+     * ----------------------------------
+     * NORMAL SCROLL
+     * ----------------------------------
+     */
 
     const handleScroll = () => {
-      /*
-       * When the browser naturally comes back
-       * to the very top, prepare the hero to
-       * reverse on the next upward interaction.
-       */
-      if (!locked && window.scrollY <= 1) {
+      if (
+        !locked &&
+        window.scrollY <= 1
+      ) {
         targetProgress = 1;
         currentProgress = 1;
 
@@ -411,11 +717,15 @@ const Hero = () => {
       }
     };
 
-    /* ----------------------------------
-       TOUCH
-    ---------------------------------- */
+    /*
+     * ----------------------------------
+     * TOUCH
+     * ----------------------------------
+     */
 
-    const handleTouchStart = (event: TouchEvent) => {
+    const handleTouchStart = (
+      event: TouchEvent
+    ) => {
       const touch = event.touches[0];
 
       if (!touch) return;
@@ -423,7 +733,9 @@ const Hero = () => {
       touchY = touch.clientY;
     };
 
-    const handleTouchMove = (event: TouchEvent) => {
+    const handleTouchMove = (
+      event: TouchEvent
+    ) => {
       const touch = event.touches[0];
 
       if (
@@ -448,9 +760,11 @@ const Hero = () => {
       touchY = null;
     };
 
-    /* ----------------------------------
-       SMOOTH ANIMATION LOOP
-    ---------------------------------- */
+    /*
+     * ----------------------------------
+     * SMOOTH LOOP
+     * ----------------------------------
+     */
 
     const tick = () => {
       const difference =
@@ -459,18 +773,24 @@ const Hero = () => {
       currentProgress +=
         difference * smoothing;
 
-      if (Math.abs(difference) < 0.0005) {
-        currentProgress = targetProgress;
+      if (
+        Math.abs(difference) < 0.0005
+      ) {
+        currentProgress =
+          targetProgress;
       }
 
       render(currentProgress);
 
-      rafId = requestAnimationFrame(tick);
+      rafId =
+        requestAnimationFrame(tick);
     };
 
-    /* ----------------------------------
-       EVENTS
-    ---------------------------------- */
+    /*
+     * ----------------------------------
+     * EVENTS
+     * ----------------------------------
+     */
 
     window.addEventListener(
       "wheel",
@@ -506,11 +826,14 @@ const Hero = () => {
       handleTouchEnd
     );
 
-    rafId = requestAnimationFrame(tick);
+    rafId =
+      requestAnimationFrame(tick);
 
-    /* ----------------------------------
-       CLEANUP
-    ---------------------------------- */
+    /*
+     * ----------------------------------
+     * CLEANUP
+     * ----------------------------------
+     */
 
     return () => {
       window.removeEventListener(
@@ -543,11 +866,18 @@ const Hero = () => {
         handleTouchEnd
       );
 
+      window.removeEventListener(
+        "hero:restore",
+        restoreHero
+      );
+
       if (rafId !== null) {
         cancelAnimationFrame(rafId);
       }
 
-      document.documentElement.style.overflow = "";
+      document.documentElement.style.overflow =
+        "";
+
       document.body.style.overflow = "";
     };
   }, []);
@@ -764,7 +1094,6 @@ const Hero = () => {
               />
             </div>
 
-            {/* PORTRAIT BOTTOM FADE */}
             <div
               className="
                 pointer-events-none
@@ -819,7 +1148,6 @@ const Hero = () => {
           >
             <div className="w-full" />
 
-            {/* ZOOMING CONTENT */}
             <div
               ref={contentRef}
               className="
@@ -850,6 +1178,7 @@ const Hero = () => {
               >
                 {/* LOCATION */}
                 <div
+                  ref={locationRef}
                   className="
                     mb-2
                     inline-flex
@@ -873,6 +1202,7 @@ const Hero = () => {
                     sm:py-1.5
                     sm:text-[11px]
                     sm:tracking-[0.2em]
+                    will-change-transform
                   "
                 >
                   <span
@@ -887,11 +1217,14 @@ const Hero = () => {
                     "
                   />
 
-                  <span>UAE • DUBAI</span>
+                  <span>
+                    UAE • DUBAI
+                  </span>
                 </div>
 
                 {/* HEADING */}
                 <h1
+                  ref={headingRef}
                   className="
                     font-brand
                     text-4xl
@@ -900,6 +1233,7 @@ const Hero = () => {
                     leading-none
                     tracking-[-0.04em]
                     text-neutral-950
+                    will-change-transform
                     sm:text-6xl
                     md:text-7xl
                     lg:text-8xl
@@ -910,13 +1244,15 @@ const Hero = () => {
 
                 {/* SEO */}
                 <h2 className="sr-only">
-                  Influencer Nasser — Top Emarati
-                  Influencer & Dubai Influencer in
-                  Dubai and Al Ain, UAE
+                  Influencer Nasser — Top
+                  Emarati Influencer & Dubai
+                  Influencer in Dubai and Al
+                  Ain, UAE
                 </h2>
 
                 {/* ROLE */}
                 <p
+                  ref={roleRef}
                   className="
                     mt-2.5
                     text-[10px]
@@ -924,6 +1260,7 @@ const Hero = () => {
                     uppercase
                     tracking-[0.18em]
                     text-neutral-600
+                    will-change-transform
                     sm:mt-4
                     sm:text-xs
                     sm:tracking-[0.25em]
@@ -947,12 +1284,15 @@ const Hero = () => {
                   md:text-right
                 "
               >
+                {/* DESCRIPTION */}
                 <p
+                  ref={descriptionRef}
                   className="
                     text-xs
                     font-normal
                     leading-relaxed
                     text-neutral-800
+                    will-change-transform
                     sm:text-base
                     md:text-[17px]
                   "
@@ -962,20 +1302,27 @@ const Hero = () => {
                   <strong className="font-semibold text-neutral-950">
                     digital culture
                   </strong>
-                  , enterprise growth, and luxury
-                  brand partnerships across the UAE.
+                  , enterprise growth, and
+                  luxury brand partnerships
+                  across the UAE.
                 </p>
 
-                <Button
-                  href="#journey"
-                  className="
-                    mt-4
-                    sm:mt-6
-                    md:ml-auto
-                  "
+                {/* BUTTON */}
+                <div
+                  ref={buttonRef}
+                  className="will-change-transform"
                 >
-                  Discover My Story
-                </Button>
+                  <Button
+                    href="#journey"
+                    className="
+                      mt-4
+                      sm:mt-6
+                      md:ml-auto
+                    "
+                  >
+                    Discover My Story
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
