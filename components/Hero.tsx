@@ -7,9 +7,6 @@ import { ArrowDown } from "lucide-react";
 import gsap from "gsap";
 import { useTranslations } from "next-intl";
 
-const MARQUEE_TEXT =
-  "INFLUENCER • CREATOR • ENTREPRENEUR • BRAND AMBASSADOR • MEDIA PERSONALITY • PUBLIC FIGURE • LIFESTYLE • PARTNERSHIPS • EVENTS • UAE • ";
-
 const Hero = () => {
   const t = useTranslations("hero");
   const brand = useTranslations("brand");

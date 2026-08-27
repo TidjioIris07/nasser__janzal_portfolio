@@ -9,6 +9,7 @@ import "./globals.css";
 import Preloader from "@/components/Preloader";
 import NavBar from "@/components/NavBar";
 import Hero from "@/components/Hero";
+import WhatsAppChat from "@/components/WhatsAppChat";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
@@ -50,6 +51,7 @@ export default async function RootLayout({
           <NavBar />
           <Hero />
           {children}
+          <WhatsAppChat />
         </NextIntlClientProvider>
       </body>
     </html>
