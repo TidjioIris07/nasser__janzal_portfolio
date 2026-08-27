@@ -224,6 +224,9 @@ export default function Preloader({
             onComplete: () => {
               setVisible(false);
               document.body.style.overflow = "";
+
+              window.dispatchEvent(new Event("preloader:finished"));
+
               onFinish?.();
             },
           },

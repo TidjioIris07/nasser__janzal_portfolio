@@ -1,13 +1,9 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-
 import Image from "next/image";
-
 import Button from "./ui/Button";
-
 import { ArrowDown } from "lucide-react";
-
 import gsap from "gsap";
 
 const MARQUEE_TEXT =
@@ -35,7 +31,6 @@ const Hero = () => {
     const content = contentRef.current;
     const marquee = marqueeRef.current;
     const scrollIndicator = scrollIndicatorRef.current;
-
     const location = locationRef.current;
     const heading = headingRef.current;
     const role = roleRef.current;
@@ -58,13 +53,13 @@ const Hero = () => {
     }
 
     const reduceMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
+      "(prefers-reduced-motion: reduce)",
     ).matches;
 
     /*
-     * ----------------------------------
+     * -------------------------------------------------------
      * ELEMENT GROUPS
-     * ----------------------------------
+     * -------------------------------------------------------
      */
 
     const revealElements = [
@@ -78,89 +73,158 @@ const Hero = () => {
     ];
 
     /*
-     * ----------------------------------
+     * -------------------------------------------------------
      * INITIAL HERO REVEAL
-     * ----------------------------------
+     * -------------------------------------------------------
+     *
+     * The hero waits for the preloader to finish,
+     * exactly like the navbar.
      */
 
-    if (!reduceMotion) {
-      gsap.set(revealElements, {
-        y: 24,
-        opacity: 0,
-      });
+    let introPlayed = false;
 
-      const reveal = gsap.timeline({
-        defaults: {
-          ease: "power3.out",
-        },
-      });
+    const animateHero = () => {
+      if (introPlayed) return;
 
-      reveal
-        .to(marquee, {
+      introPlayed = true;
+
+      if (reduceMotion) {
+        gsap.set(revealElements, {
+          clearProps: "all",
           y: 0,
           opacity: 1,
-          duration: 0.8,
-        })
-        .to(
-          location,
-          {
+        });
+
+        return;
+      }
+
+      const ctx = gsap.context(() => {
+        /*
+         * Initial position.
+         *
+         * Each element starts 24px below its
+         * natural position and fades in.
+         */
+        gsap.set(revealElements, {
+          y: 24,
+          opacity: 0,
+        });
+
+        /*
+         * Individual reveal.
+         */
+        const reveal = gsap.timeline({
+          defaults: {
+            ease: "power3.out",
+          },
+        });
+
+        reveal
+          .to(marquee, {
             y: 0,
             opacity: 1,
-            duration: 0.7,
-          },
-          "-=0.55"
-        )
-        .to(
-          heading,
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.75,
-          },
-          "-=0.5"
-        )
-        .to(
-          role,
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.65,
-          },
-          "-=0.48"
-        )
-        .to(
-          description,
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.7,
-          },
-          "-=0.4"
-        )
-        .to(
-          button,
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.65,
-          },
-          "-=0.4"
-        )
-        .to(
-          scrollIndicator,
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.7,
-          },
-          "-=0.35"
-        );
-    }
+            duration: 0.8,
+          })
+          .to(
+            location,
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.7,
+            },
+            "-=0.55",
+          )
+          .to(
+            heading,
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.75,
+            },
+            "-=0.5",
+          )
+          .to(
+            role,
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.65,
+            },
+            "-=0.48",
+          )
+          .to(
+            description,
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.7,
+            },
+            "-=0.4",
+          )
+          .to(
+            button,
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.65,
+            },
+            "-=0.4",
+          )
+          .to(
+            scrollIndicator,
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.7,
+            },
+            "-=0.35",
+          );
+      }, hero);
+
+      return ctx;
+    };
 
     /*
-     * ----------------------------------
+     * -------------------------------------------------------
+     * WAIT FOR PRELOADER
+     * -------------------------------------------------------
+     */
+
+    const handlePreloaderFinished = () => {
+      animateHero();
+    };
+
+    window.addEventListener(
+      "preloader:finished",
+      handlePreloaderFinished,
+    );
+
+    /*
+     * -------------------------------------------------------
+     * FALLBACK
+     * -------------------------------------------------------
+     *
+     * If the preloader has already finished before
+     * this component registered its event listener,
+     * reveal the hero shortly after mount.
+     */
+
+    const fallbackTimer = window.setTimeout(() => {
+      if (introPlayed) return;
+
+      const preloader = document.querySelector(
+        ".preloader-curtain",
+      );
+
+      if (!preloader) {
+        animateHero();
+      }
+    }, 100);
+
+    /*
+     * -------------------------------------------------------
      * SCROLL CONFIG
-     * ----------------------------------
+     * -------------------------------------------------------
      */
 
     const fadeDistance = 1100;
@@ -168,10 +232,8 @@ const Hero = () => {
 
     let targetProgress = 0;
     let currentProgress = 0;
-
     let locked = false;
     let hasStartedScrolling = false;
-
     let touchY: number | null = null;
     let rafId: number | null = null;
 
@@ -179,56 +241,56 @@ const Hero = () => {
       Math.min(1, Math.max(0, value));
 
     /*
-     * ----------------------------------
+     * -------------------------------------------------------
      * QUICK SETTERS
-     * ----------------------------------
+     * -------------------------------------------------------
      */
 
     const setPortraitY = gsap.quickSetter(
       portrait,
       "y",
-      "px"
+      "px",
     );
 
     const setPortraitOpacity = gsap.quickSetter(
       portrait,
-      "opacity"
+      "opacity",
     );
 
     const setContentScale = gsap.quickSetter(
       content,
-      "scale"
+      "scale",
     );
 
     const setContentOpacity = gsap.quickSetter(
       content,
-      "opacity"
+      "opacity",
     );
 
     const setMarqueeScale = gsap.quickSetter(
       marquee,
-      "scale"
+      "scale",
     );
 
     const setMarqueeOpacity = gsap.quickSetter(
       marquee,
-      "opacity"
+      "opacity",
     );
 
     const setIndicatorScale = gsap.quickSetter(
       scrollIndicator,
-      "scale"
+      "scale",
     );
 
     const setIndicatorOpacity = gsap.quickSetter(
       scrollIndicator,
-      "opacity"
+      "opacity",
     );
 
     /*
-     * ----------------------------------
+     * -------------------------------------------------------
      * SCROLL RENDER
-     * ----------------------------------
+     * -------------------------------------------------------
      */
 
     const render = (progress: number) => {
@@ -267,16 +329,18 @@ const Hero = () => {
     render(0);
 
     /*
-     * ----------------------------------
+     * -------------------------------------------------------
      * RESTORE HERO
+     * -------------------------------------------------------
      *
-     * This is the important part.
+     * Called by:
      *
-     * When scrollToSection("#hero") is
-     * called, we reset the internal
-     * progress AND animate every element
-     * back to its visible state.
-     * ----------------------------------
+     * window.dispatchEvent(
+     *   new Event("hero:restore")
+     * )
+     *
+     * This is separate from the initial preloader
+     * animation.
      */
 
     const restoreHero = () => {
@@ -285,7 +349,7 @@ const Hero = () => {
       hasStartedScrolling = false;
 
       /*
-       * Stop anything currently running
+       * Stop running animations.
        */
       gsap.killTweensOf([
         portrait,
@@ -300,8 +364,7 @@ const Hero = () => {
       ]);
 
       /*
-       * Immediately restore the scroll-driven
-       * transforms.
+       * Restore scroll-driven elements.
        */
       gsap.set(portrait, {
         y: 0,
@@ -324,26 +387,13 @@ const Hero = () => {
       });
 
       /*
-       * Put the UI elements slightly below
-       * their natural position, then bring
-       * them back individually.
+       * Re-run the hero reveal.
        */
       if (!reduceMotion) {
-        gsap.set(
-          [
-            marquee,
-            location,
-            heading,
-            role,
-            description,
-            button,
-            scrollIndicator,
-          ],
-          {
-            y: 24,
-            opacity: 0,
-          }
-        );
+        gsap.set(revealElements, {
+          y: 24,
+          opacity: 0,
+        });
 
         const restore = gsap.timeline({
           defaults: {
@@ -352,14 +402,11 @@ const Hero = () => {
         });
 
         restore
-          .to(
-            marquee,
-            {
-              y: 0,
-              opacity: 1,
-              duration: 0.7,
-            }
-          )
+          .to(marquee, {
+            y: 0,
+            opacity: 1,
+            duration: 0.7,
+          })
           .to(
             location,
             {
@@ -367,7 +414,7 @@ const Hero = () => {
               opacity: 1,
               duration: 0.6,
             },
-            "-=0.45"
+            "-=0.45",
           )
           .to(
             heading,
@@ -376,7 +423,7 @@ const Hero = () => {
               opacity: 1,
               duration: 0.65,
             },
-            "-=0.42"
+            "-=0.42",
           )
           .to(
             role,
@@ -385,7 +432,7 @@ const Hero = () => {
               opacity: 1,
               duration: 0.55,
             },
-            "-=0.4"
+            "-=0.4",
           )
           .to(
             description,
@@ -394,7 +441,7 @@ const Hero = () => {
               opacity: 1,
               duration: 0.6,
             },
-            "-=0.36"
+            "-=0.36",
           )
           .to(
             button,
@@ -403,7 +450,7 @@ const Hero = () => {
               opacity: 1,
               duration: 0.55,
             },
-            "-=0.35"
+            "-=0.35",
           )
           .to(
             scrollIndicator,
@@ -412,24 +459,13 @@ const Hero = () => {
               opacity: 1,
               duration: 0.6,
             },
-            "-=0.3"
+            "-=0.3",
           );
       } else {
-        gsap.set(
-          [
-            marquee,
-            location,
-            heading,
-            role,
-            description,
-            button,
-            scrollIndicator,
-          ],
-          {
-            y: 0,
-            opacity: 1,
-          }
-        );
+        gsap.set(revealElements, {
+          y: 0,
+          opacity: 1,
+        });
       }
 
       /*
@@ -441,28 +477,15 @@ const Hero = () => {
       locked = true;
     };
 
-    /*
-     * ----------------------------------
-     * EXPOSE RESTORE FUNCTION
-     * ----------------------------------
-     *
-     * Your scrollToSection function can
-     * call:
-     *
-     * window.dispatchEvent(
-     *   new Event("hero:restore")
-     * )
-     */
-
     window.addEventListener(
       "hero:restore",
-      restoreHero
+      restoreHero,
     );
 
     /*
-     * ----------------------------------
+     * -------------------------------------------------------
      * SCROLL LOCK
-     * ----------------------------------
+     * -------------------------------------------------------
      */
 
     const lockScroll = () => {
@@ -486,23 +509,23 @@ const Hero = () => {
     };
 
     /*
-     * Initially lock hero
+     * Initially lock hero.
      */
     if (window.scrollY <= 1) {
       lockScroll();
     }
 
     /*
-     * ----------------------------------
+     * -------------------------------------------------------
      * APPLY DELTA
-     * ----------------------------------
+     * -------------------------------------------------------
      */
 
     const applyDelta = (delta: number) => {
       if (delta === 0) return;
 
       /*
-       * Start scrolling
+       * Start scrolling.
        */
       if (delta > 0 && !hasStartedScrolling) {
         hasStartedScrolling = true;
@@ -518,34 +541,33 @@ const Hero = () => {
 
       const safeDelta = Math.max(
         -80,
-        Math.min(80, delta)
+        Math.min(80, delta),
       );
 
       targetProgress = clamp(
         targetProgress +
-          safeDelta / fadeDistance
+          safeDelta / fadeDistance,
       );
 
       /*
-       * Fully faded out
+       * Fully faded out.
        */
       if (targetProgress >= 1) {
         targetProgress = 1;
 
         currentProgress = Math.min(
           currentProgress,
-          1
+          1,
         );
 
         unlockScroll();
       }
 
       /*
-       * Back to hero
+       * Back to hero.
        */
       if (targetProgress <= 0) {
         targetProgress = 0;
-
         currentProgress = 0;
 
         window.scrollTo({
@@ -558,24 +580,21 @@ const Hero = () => {
     };
 
     /*
-     * ----------------------------------
+     * -------------------------------------------------------
      * WHEEL
-     * ----------------------------------
+     * -------------------------------------------------------
      */
 
     const handleWheel = (event: WheelEvent) => {
       if (locked) {
         event.preventDefault();
-
         applyDelta(event.deltaY);
-
         return;
       }
 
       /*
-       * If the user is at the top and
-       * starts scrolling upward, restore
-       * the hero.
+       * If we're back at the top and scroll upward,
+       * enter the fake hero scroll again.
        */
       if (
         event.deltaY < 0 &&
@@ -584,19 +603,18 @@ const Hero = () => {
         event.preventDefault();
 
         lockScroll();
-
         applyDelta(event.deltaY);
       }
     };
 
     /*
-     * ----------------------------------
+     * -------------------------------------------------------
      * KEYBOARD
-     * ----------------------------------
+     * -------------------------------------------------------
      */
 
     const handleKeyDown = (
-      event: KeyboardEvent
+      event: KeyboardEvent,
     ) => {
       const isUpKey =
         event.key === "ArrowUp" ||
@@ -610,6 +628,9 @@ const Hero = () => {
         event.key === " " ||
         event.key === "Spacebar";
 
+      /*
+       * Hero is locked.
+       */
       if (locked) {
         let delta = 0;
 
@@ -646,14 +667,12 @@ const Hero = () => {
         }
 
         event.preventDefault();
-
         applyDelta(delta);
-
         return;
       }
 
       /*
-       * Go back into the hero
+       * Go back into the hero.
        */
       if (
         isUpKey &&
@@ -667,14 +686,14 @@ const Hero = () => {
         applyDelta(
           event.key === "PageUp"
             ? -220
-            : -70
+            : -70,
         );
 
         return;
       }
 
       /*
-       * Home key
+       * Home key.
        */
       if (
         event.key === "Home" &&
@@ -698,9 +717,9 @@ const Hero = () => {
     };
 
     /*
-     * ----------------------------------
+     * -------------------------------------------------------
      * NORMAL SCROLL
-     * ----------------------------------
+     * -------------------------------------------------------
      */
 
     const handleScroll = () => {
@@ -718,13 +737,13 @@ const Hero = () => {
     };
 
     /*
-     * ----------------------------------
+     * -------------------------------------------------------
      * TOUCH
-     * ----------------------------------
+     * -------------------------------------------------------
      */
 
     const handleTouchStart = (
-      event: TouchEvent
+      event: TouchEvent,
     ) => {
       const touch = event.touches[0];
 
@@ -734,7 +753,7 @@ const Hero = () => {
     };
 
     const handleTouchMove = (
-      event: TouchEvent
+      event: TouchEvent,
     ) => {
       const touch = event.touches[0];
 
@@ -761,9 +780,9 @@ const Hero = () => {
     };
 
     /*
-     * ----------------------------------
+     * -------------------------------------------------------
      * SMOOTH LOOP
-     * ----------------------------------
+     * -------------------------------------------------------
      */
 
     const tick = () => {
@@ -787,88 +806,97 @@ const Hero = () => {
     };
 
     /*
-     * ----------------------------------
+     * -------------------------------------------------------
      * EVENTS
-     * ----------------------------------
+     * -------------------------------------------------------
      */
 
     window.addEventListener(
       "wheel",
       handleWheel,
-      { passive: false }
+      { passive: false },
     );
 
     window.addEventListener(
       "keydown",
-      handleKeyDown
+      handleKeyDown,
     );
 
     window.addEventListener(
       "scroll",
       handleScroll,
-      { passive: true }
+      { passive: true },
     );
 
     window.addEventListener(
       "touchstart",
       handleTouchStart,
-      { passive: true }
+      { passive: true },
     );
 
     window.addEventListener(
       "touchmove",
       handleTouchMove,
-      { passive: false }
+      { passive: false },
     );
 
     window.addEventListener(
       "touchend",
-      handleTouchEnd
+      handleTouchEnd,
     );
 
     rafId =
       requestAnimationFrame(tick);
 
     /*
-     * ----------------------------------
+     * -------------------------------------------------------
      * CLEANUP
-     * ----------------------------------
+     * -------------------------------------------------------
      */
 
     return () => {
       window.removeEventListener(
+        "preloader:finished",
+        handlePreloaderFinished,
+      );
+
+      window.clearTimeout(
+        fallbackTimer,
+      );
+
+      window.removeEventListener(
         "wheel",
-        handleWheel
+        handleWheel,
       );
 
       window.removeEventListener(
         "keydown",
-        handleKeyDown
+        handleKeyDown,
       );
 
       window.removeEventListener(
         "scroll",
-        handleScroll
+        handleScroll,
       );
 
       window.removeEventListener(
         "touchstart",
-        handleTouchStart
+        handleTouchStart,
       );
 
       window.removeEventListener(
         "touchmove",
-        handleTouchMove
+        handleTouchMove,
       );
 
       window.removeEventListener(
         "touchend",
-        handleTouchEnd
+        handleTouchEnd,
       );
 
       window.removeEventListener(
         "hero:restore",
-        restoreHero
+        restoreHero,
       );
 
       if (rafId !== null) {

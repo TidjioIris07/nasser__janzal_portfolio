@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
 
 import Button from "./ui/Button";
 import LanguageSwitch from "./ui/LanguageSwitch";
@@ -31,6 +32,27 @@ const NavBar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  /*
+   * -------------------------------------------------------
+   * ANIMATION REFS
+   * -------------------------------------------------------
+   */
+
+  const headerRef = useRef<HTMLElement>(null);
+  const navbarRef = useRef<HTMLDivElement>(null);
+  const logoRef = useRef<HTMLAnchorElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+  const rightSideRef = useRef<HTMLDivElement>(null);
+  const languageRef = useRef<HTMLDivElement>(null);
+  const socialsRef = useRef<HTMLDivElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
+
+  /*
+   * -------------------------------------------------------
+   * SCROLL STATE
+   * -------------------------------------------------------
+   */
+
   useEffect(() => {
     const onScroll = () => {
       setScrolled(window.scrollY > SCROLL_THRESHOLD);
@@ -47,9 +69,235 @@ const NavBar = () => {
     };
   }, []);
 
+  /*
+   * -------------------------------------------------------
+   * NAVBAR INTRO ANIMATION
+   * -------------------------------------------------------
+   */
+
+  useEffect(() => {
+    const header = headerRef.current;
+    const navbar = navbarRef.current;
+    const logo = logoRef.current;
+    const nav = navRef.current;
+    const rightSide = rightSideRef.current;
+    const language = languageRef.current;
+    const socials = socialsRef.current;
+    const cta = ctaRef.current;
+
+    if (
+      !header ||
+      !navbar ||
+      !logo ||
+      !nav ||
+      !rightSide ||
+      !language ||
+      !socials ||
+      !cta
+    ) {
+      return;
+    }
+
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    /*
+     * The preloader is responsible for the first visual.
+     * Navbar waits until the preloader has completely
+     * disappeared.
+     */
+
+    const animateNavbar = () => {
+      if (reduceMotion) {
+        gsap.set(
+          [
+            logo,
+            nav,
+            language,
+            socials,
+            cta,
+          ],
+          {
+            clearProps: "all",
+          },
+        );
+
+        return;
+      }
+
+      const ctx = gsap.context(() => {
+        /*
+         * ---------------------------------------------------
+         * INITIAL STATE
+         * ---------------------------------------------------
+         *
+         * -0.5Y means approximately half of the element's
+         * own height upward.
+         */
+
+        gsap.set(
+          [
+            logo,
+            nav,
+            language,
+            socials,
+            cta,
+          ],
+          {
+            yPercent: -50,
+            opacity: 0,
+          },
+        );
+
+        /*
+         * ---------------------------------------------------
+         * NAVBAR REVEAL
+         * ---------------------------------------------------
+         *
+         * Each group enters individually.
+         */
+
+        const timeline = gsap.timeline({
+          defaults: {
+            ease: "power3.out",
+          },
+        });
+
+        /*
+         * LOGO
+         */
+
+        timeline.to(logo, {
+          yPercent: 0,
+          opacity: 1,
+          duration: 0.7,
+        });
+
+        /*
+         * DESKTOP NAVIGATION
+         */
+
+        timeline.to(
+          nav,
+          {
+            yPercent: 0,
+            opacity: 1,
+            duration: 0.65,
+          },
+          "-=0.48",
+        );
+
+        /*
+         * LANGUAGE
+         */
+
+        timeline.to(
+          language,
+          {
+            yPercent: 0,
+            opacity: 1,
+            duration: 0.6,
+          },
+          "-=0.42",
+        );
+
+        /*
+         * SOCIAL ICONS
+         */
+
+        timeline.to(
+          socials,
+          {
+            yPercent: 0,
+            opacity: 1,
+            duration: 0.6,
+          },
+          "-=0.42",
+        );
+
+        /*
+         * CTA
+         */
+
+        timeline.to(
+          cta,
+          {
+            yPercent: 0,
+            opacity: 1,
+            duration: 0.65,
+          },
+          "-=0.42",
+        );
+      }, header);
+
+      return ctx;
+    };
+
+    /*
+     * -------------------------------------------------------
+     * WAIT FOR PRELOADER
+     * -------------------------------------------------------
+     */
+
+    const handlePreloaderFinished = () => {
+      animateNavbar();
+    };
+
+    window.addEventListener(
+      "preloader:finished",
+      handlePreloaderFinished,
+    );
+
+    /*
+     * Fallback:
+     *
+     * If the preloader has already finished before this
+     * listener was registered, reveal the navbar shortly
+     * after mount.
+     */
+
+    const fallbackTimer = window.setTimeout(() => {
+      const computedOpacity = gsap.getProperty(
+        logo,
+        "opacity",
+      );
+
+      if (computedOpacity === 1) return;
+
+      /*
+       * Only use fallback if the preloader itself is no
+       * longer visible.
+       */
+
+      const preloader = document.querySelector(
+        ".preloader-curtain",
+      );
+
+      if (!preloader) {
+        animateNavbar();
+      }
+    }, 100);
+
+    return () => {
+      window.removeEventListener(
+        "preloader:finished",
+        handlePreloaderFinished,
+      );
+
+      window.clearTimeout(fallbackTimer);
+    };
+  }, []);
+
+  /*
+   * -------------------------------------------------------
+   * NAVIGATION
+   * -------------------------------------------------------
+   */
+
   const handleNavigation = (
     event: React.MouseEvent<HTMLAnchorElement>,
-    sectionId: string
+    sectionId: string,
   ) => {
     scrollToSection(event, sectionId);
     setMenuOpen(false);
@@ -57,9 +305,11 @@ const NavBar = () => {
 
   return (
     <header
+      ref={headerRef}
       className={`
         fixed inset-x-0 top-0 z-50
         transition-all duration-500 ease-out
+
         ${
           scrolled
             ? "border-b border-black/8 bg-white/80 shadow-sm shadow-black/4 backdrop-blur-2xl"
@@ -72,9 +322,11 @@ const NavBar = () => {
       ========================================================= */}
 
       <div
+        ref={navbarRef}
         className={`
           mx-auto flex w-full max-w-360 items-center justify-between
           transition-all duration-500 ease-out
+
           ${
             scrolled
               ? "px-6 py-3 md:px-12 lg:px-16"
@@ -87,16 +339,18 @@ const NavBar = () => {
         ======================================================= */}
 
         <a
-        onClick={(event) => {
-          setMenuOpen(false)
-          scrollToSection(event, "#hero")
-          
+          ref={logoRef}
+          onClick={(event) => {
+            setMenuOpen(false);
+            scrollToSection(event, "#hero");
           }}
           className={`
-            group flex shrink-0 items-center gap-1.5
+            group flex shrink-0 cursor-pointer items-center gap-1.5
             font-brand text-xl font-bold uppercase
-            tracking-[-0.04em] transition-all duration-500
+            tracking-[-0.04em]
+            transition-all duration-500
             md:text-2xl
+
             ${
               scrolled
                 ? "text-black"
@@ -108,8 +362,10 @@ const NavBar = () => {
 
           <span
             className={`
-              h-2 w-2 rounded-full transition-transform duration-300
+              h-2 w-2 rounded-full
+              transition-transform duration-300
               group-hover:scale-125
+
               ${scrolled ? "bg-black" : "bg-white"}
             `}
           />
@@ -120,6 +376,7 @@ const NavBar = () => {
         ======================================================= */}
 
         <nav
+          ref={navRef}
           className="
             hidden
             items-center
@@ -137,11 +394,15 @@ const NavBar = () => {
               key={link.href}
               href={link.href}
               onClick={(event) =>
-                scrollToSection(event, link.href.slice(1))
+                scrollToSection(
+                  event,
+                  link.href.slice(1),
+                )
               }
               className={`
                 transition-colors
                 duration-300
+
                 ${
                   scrolled
                     ? "text-neutral-600 hover:text-black"
@@ -158,11 +419,30 @@ const NavBar = () => {
             DESKTOP RIGHT SIDE
         ======================================================= */}
 
-        <div className="hidden items-center gap-3 sm:flex lg:gap-4">
-          <LanguageSwitch scrolled={scrolled} />
+        <div
+          ref={rightSideRef}
+          className="
+            hidden
+            items-center
+            gap-3
+            sm:flex
+            lg:gap-4
+          "
+        >
+          {/* LANGUAGE */}
 
-          {/* Instagram */}
-          <div className="flex items-center gap-2">
+          <div ref={languageRef}>
+            <LanguageSwitch scrolled={scrolled} />
+          </div>
+
+          {/* SOCIALS */}
+
+          <div
+            ref={socialsRef}
+            className="flex items-center gap-2"
+          >
+            {/* Instagram */}
+
             <a
               href="https://www.instagram.com/nasserjanzal"
               target="_blank"
@@ -179,6 +459,7 @@ const NavBar = () => {
                 transition-all
                 duration-300
                 hover:scale-105
+
                 ${
                   scrolled
                     ? "border-black/10 bg-white/60 text-black/70 hover:border-black/20 hover:bg-white hover:text-black"
@@ -190,6 +471,7 @@ const NavBar = () => {
             </a>
 
             {/* TikTok */}
+
             <a
               href="https://www.tiktok.com/@nasserjanzal"
               target="_blank"
@@ -206,6 +488,7 @@ const NavBar = () => {
                 transition-all
                 duration-300
                 hover:scale-105
+
                 ${
                   scrolled
                     ? "border-black/10 bg-white/60 text-black/70 hover:border-black/20 hover:bg-white hover:text-black"
@@ -217,15 +500,18 @@ const NavBar = () => {
             </a>
           </div>
 
-          {/* Desktop CTA */}
-          <Button
-            onClick={(event) => {
-              event.preventDefault();
-              showForm();
-            }}
-          >
-            Send An Enquiry
-          </Button>
+          {/* CTA */}
+
+          <div ref={ctaRef}>
+            <Button
+              onClick={(event) => {
+                event.preventDefault();
+                showForm();
+              }}
+            >
+              Send An Enquiry
+            </Button>
+          </div>
         </div>
 
         {/* =======================================================
@@ -234,13 +520,21 @@ const NavBar = () => {
 
         <div className="flex items-center gap-2 sm:hidden">
           {/* Language */}
+
           <LanguageSwitch scrolled={scrolled} />
 
-          {/* Menu / Close */}
+          {/* Menu */}
+
           <button
             type="button"
-            onClick={() => setMenuOpen((prev) => !prev)}
-            aria-label={menuOpen ? "Close menu" : "Toggle menu"}
+            onClick={() =>
+              setMenuOpen((prev) => !prev)
+            }
+            aria-label={
+              menuOpen
+                ? "Close menu"
+                : "Toggle menu"
+            }
             aria-expanded={menuOpen}
             className={`
               flex
@@ -253,6 +547,7 @@ const NavBar = () => {
               border
               transition-all
               duration-300
+
               ${
                 scrolled || menuOpen
                   ? "border-black/10 bg-white/60 text-black"
@@ -260,11 +555,19 @@ const NavBar = () => {
               }
             `}
           >
-            {menuOpen ? <CloseIcon /> : <MenuIcon />}
+            {menuOpen ? (
+              <CloseIcon />
+            ) : (
+              <MenuIcon />
+            )}
           </button>
         </div>
       </div>
-      
+
+      {/* =========================================================
+          MOBILE MENU
+      ========================================================= */}
+
       <div
         className={`
           absolute
@@ -277,11 +580,13 @@ const NavBar = () => {
           duration-500
           ease-[cubic-bezier(0.22,1,0.36,1)]
           sm:hidden
+
           ${
             menuOpen
               ? "visible max-h-[calc(100dvh-80px)] opacity-100"
               : "invisible max-h-0 opacity-0"
           }
+
           ${
             scrolled
               ? "border-black/6 bg-white"
@@ -294,6 +599,7 @@ const NavBar = () => {
             max-h-[calc(100dvh-80px)]
             overflow-y-auto
             overscroll-contain
+
             ${
               scrolled
                 ? "bg-white"
@@ -301,9 +607,7 @@ const NavBar = () => {
             }
           `}
         >
-          {/* =====================================================
-              NAVIGATION LINKS
-          ===================================================== */}
+          {/* NAVIGATION */}
 
           <nav className="flex flex-col">
             {NAV_LINKS.map((link) => (
@@ -313,7 +617,7 @@ const NavBar = () => {
                 onClick={(event) =>
                   handleNavigation(
                     event,
-                    link.href.slice(1)
+                    link.href.slice(1),
                   )
                 }
                 className="
@@ -339,9 +643,7 @@ const NavBar = () => {
             ))}
           </nav>
 
-          {/* =====================================================
-              MOBILE CONNECT
-          ===================================================== */}
+          {/* CONNECT */}
 
           <div
             className="
@@ -366,6 +668,7 @@ const NavBar = () => {
 
             <div className="flex items-center gap-2">
               {/* Instagram */}
+
               <a
                 href="https://www.instagram.com/nasserjanzal"
                 target="_blank"
@@ -392,6 +695,7 @@ const NavBar = () => {
               </a>
 
               {/* TikTok */}
+
               <a
                 href="https://www.tiktok.com/@nasserjanzal"
                 target="_blank"
