@@ -1,7 +1,7 @@
 "use client";
 
 import { showForm } from "@/utils/utils";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Button from "./ui/Button";
 import PartnerCard from "./ui/PartnerCard";
 
@@ -72,6 +72,7 @@ const PARTNER: Partner[] = [
 const Partnership = () => {
     const t = useTranslations("partnerships");
     const partnerNames = useTranslations("partners");
+    const isArabic = useLocale() === "ar";
     const partners = PARTNER.map((partner, index) => ({
         ...partner,
         name: partnerNames(["ebms", "realEstate", "advisor", "expert", "positive", "easyway"][index]),
@@ -161,18 +162,25 @@ const Partnership = () => {
                 </div>
 
                 {/* Timeline */}
-                <div className="relative max-w-310 pl-6 sm:pl-10">
+                <div
+                    className={`relative max-w-310 ${
+                        isArabic ? "pr-6 sm:pr-10" : "pl-6 sm:pl-10"
+                    }`}
+                >
                     {/* Continuous timeline */}
                     <div
-                        className="
+                        className={`
                             absolute
-                            left-4.5
                             top-4
                             bottom-4
                             w-0.5
                             bg-neutral-300
-                            sm:left-7.5
-                        "
+                            ${
+                                isArabic
+                                    ? "right-4.5 sm:right-7.5"
+                                    : "left-4.5 sm:left-7.5"
+                            }
+                        `}
                     />
 
                     <div className="space-y-8">
@@ -183,9 +191,8 @@ const Partnership = () => {
                             >
                                 {/* Timeline dot */}
                                 <div
-                                    className="
+                                    className={`
                                         absolute
-                                        -left-6
                                         top-6
                                         z-20
                                         h-4
@@ -197,8 +204,12 @@ const Partnership = () => {
                                         transition-all
                                         duration-300
                                         group-hover:bg-neutral-950
-                                        sm:-left-7.71
-                                    "
+                                        ${
+                                            isArabic
+                                                ? "-right-6 sm:-right-7.71"
+                                                : "-left-6 sm:-left-7.71"
+                                        }
+                                    `}
                                 />
 
                                 <PartnerCard {...partner} />
@@ -224,6 +235,7 @@ const Partnership = () => {
                   </div>
 
                   <Button
+                    className="shrink-0 bg-neutral-950 px-8 py-4 text-white shadow-md transition-all duration-200 hover:bg-neutral-800 active:scale-95 sm:text-sm"
                     onClick={(event) => {
                         event.preventDefault();
                         showForm();
