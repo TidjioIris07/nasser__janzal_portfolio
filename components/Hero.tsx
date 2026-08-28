@@ -1044,7 +1044,7 @@ const Hero = () => {
                 alt={t("portraitAlt")}
                 fill
                 priority
-                loading="eager"
+                // loading="eager"
                 sizes="(max-width: 640px) 95vw, (max-width: 1024px) 85vw, 1250px"
                 className="
                   select-none

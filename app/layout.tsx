@@ -39,6 +39,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getLocale();
+
   return (
     <html
       lang={locale}
@@ -47,11 +48,7 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-black text-white">
         <NextIntlClientProvider>
-          <Preloader />
-          <NavBar />
-          <Hero />
           {children}
-          <WhatsAppChat />
         </NextIntlClientProvider>
       </body>
     </html>
