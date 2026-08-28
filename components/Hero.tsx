@@ -1,18 +1,31 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+} from "react";
+
 import Image from "next/image";
+
 import Button from "./ui/Button";
+
 import { ArrowDown } from "lucide-react";
+
 import gsap from "gsap";
-import { useTranslations } from "next-intl";
+
+import { useLocale, useTranslations } from "next-intl";
 
 const Hero = () => {
   const t = useTranslations("hero");
   const brand = useTranslations("brand");
   const accessibility = useTranslations("accessibility");
 
+  const locale = useLocale();
+  const isArabic = locale === "ar";
+
   const heroRef = useRef<HTMLElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   /* Scroll animation refs */
   const portraitRef = useRef<HTMLDivElement>(null);
@@ -27,12 +40,97 @@ const Hero = () => {
   const descriptionRef = useRef<HTMLParagraphElement>(null);
   const buttonRef = useRef<HTMLDivElement>(null);
 
+  /*
+   * -------------------------------------------------------
+   * VIDEO
+   * -------------------------------------------------------
+   */
+
   useEffect(() => {
+    const video = videoRef.current;
+
+    if (!video) return;
+
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+
+    const playVideo = async () => {
+      try {
+        await video.play();
+      } catch {
+        /*
+         * Some mobile browsers may block autoplay until
+         * the first user interaction.
+         *
+         * The video will attempt to play again on the
+         * first interaction.
+         */
+      }
+    };
+
+    if (video.readyState >= 2) {
+      playVideo();
+    } else {
+      video.addEventListener("loadeddata", playVideo, {
+        once: true,
+      });
+    }
+
+    const handleFirstInteraction = () => {
+      playVideo();
+    };
+
+    window.addEventListener(
+      "touchstart",
+      handleFirstInteraction,
+      {
+        once: true,
+        passive: true,
+      },
+    );
+
+    window.addEventListener(
+      "pointerdown",
+      handleFirstInteraction,
+      {
+        once: true,
+        passive: true,
+      },
+    );
+
+    return () => {
+      video.removeEventListener(
+        "loadeddata",
+        playVideo,
+      );
+
+      window.removeEventListener(
+        "touchstart",
+        handleFirstInteraction,
+      );
+
+      window.removeEventListener(
+        "pointerdown",
+        handleFirstInteraction,
+      );
+    };
+  }, []);
+
+  /*
+   * -------------------------------------------------------
+   * HERO / GSAP / SCROLL
+   * -------------------------------------------------------
+   */
+
+  useLayoutEffect(() => {
     const hero = heroRef.current;
     const portrait = portraitRef.current;
     const content = contentRef.current;
     const marquee = marqueeRef.current;
-    const scrollIndicator = scrollIndicatorRef.current;
+    const scrollIndicator =
+      scrollIndicatorRef.current;
+
     const location = locationRef.current;
     const heading = headingRef.current;
     const role = roleRef.current;
@@ -43,7 +141,6 @@ const Hero = () => {
       !hero ||
       !portrait ||
       !content ||
-      !marquee ||
       !scrollIndicator ||
       !location ||
       !heading ||
@@ -58,29 +155,44 @@ const Hero = () => {
       "(prefers-reduced-motion: reduce)",
     ).matches;
 
-    /* -------------------------------------------------------
-       ELEMENT GROUPS
-    ------------------------------------------------------- */
+    /*
+     * Mobile uses native browser scrolling.
+     *
+     * Desktop keeps the custom hero scroll interaction.
+     */
+
+    const isMobile = window.matchMedia(
+      "(max-width: 767px)",
+    ).matches;
+
+    /*
+     * -------------------------------------------------------
+     * ELEMENT GROUPS
+     * -------------------------------------------------------
+     */
 
     const revealElements = [
-      marquee,
       location,
       heading,
       role,
       description,
       button,
       scrollIndicator,
+      ...(marquee ? [marquee] : []),
     ];
 
-    /* -------------------------------------------------------
-       INITIAL HERO REVEAL
-    ------------------------------------------------------- */
+    /*
+     * -------------------------------------------------------
+     * INITIAL HERO REVEAL
+     * -------------------------------------------------------
+     */
 
     let introPlayed = false;
-    let heroCtx: gsap.Context;
+    let heroCtx: gsap.Context | null = null;
 
     const animateHero = () => {
       if (introPlayed) return;
+
       introPlayed = true;
 
       if (reduceMotion) {
@@ -89,10 +201,18 @@ const Hero = () => {
           y: 0,
           opacity: 1,
         });
+
         return;
       }
 
       heroCtx = gsap.context(() => {
+        /*
+         * Keep the initial state synchronized with the
+         * opacity-0 / translate-y-6 classes in the markup.
+         *
+         * This prevents any visible flash before animation.
+         */
+
         gsap.set(revealElements, {
           y: 24,
           opacity: 0,
@@ -104,12 +224,15 @@ const Hero = () => {
           },
         });
 
-        reveal
-          .to(marquee, {
+        if (marquee) {
+          reveal.to(marquee, {
             y: 0,
             opacity: 1,
             duration: 0.8,
-          })
+          });
+        }
+
+        reveal
           .to(
             location,
             {
@@ -117,7 +240,7 @@ const Hero = () => {
               opacity: 1,
               duration: 0.7,
             },
-            "-=0.55",
+            marquee ? "-=0.55" : 0,
           )
           .to(
             heading,
@@ -167,9 +290,11 @@ const Hero = () => {
       }, hero);
     };
 
-    /* -------------------------------------------------------
-       WAIT FOR PRELOADER
-    ------------------------------------------------------- */
+    /*
+     * -------------------------------------------------------
+     * WAIT FOR PRELOADER
+     * -------------------------------------------------------
+     */
 
     const handlePreloaderFinished = () => {
       animateHero();
@@ -179,10 +304,6 @@ const Hero = () => {
       "preloader:finished",
       handlePreloaderFinished,
     );
-
-    /* -------------------------------------------------------
-       FALLBACK
-    ------------------------------------------------------- */
 
     const fallbackTimer = window.setTimeout(() => {
       if (introPlayed) return;
@@ -196,9 +317,101 @@ const Hero = () => {
       }
     }, 100);
 
-    /* -------------------------------------------------------
-       SCROLL CONFIG
-    ------------------------------------------------------- */
+    /*
+     * -------------------------------------------------------
+     * MOBILE NATIVE SCROLL
+     * -------------------------------------------------------
+     */
+
+    let mobileScrollHandler:
+      | (() => void)
+      | null = null;
+
+    if (isMobile) {
+      const renderMobile = () => {
+        const viewportHeight = window.innerHeight;
+
+        /*
+         * Use the viewport as the mobile fade distance.
+         *
+         * This means the hero naturally transitions during
+         * one screen of scrolling.
+         */
+
+        const progress = Math.min(
+          1,
+          Math.max(
+            0,
+            window.scrollY /
+              Math.max(viewportHeight, 1),
+          ),
+        );
+
+        if (reduceMotion) return;
+
+        gsap.set(portrait, {
+          y: progress * 70,
+          opacity: 1 - progress,
+        });
+
+        const contentScale =
+          1 + progress * 0.18;
+
+        gsap.set(content, {
+          scale: contentScale,
+          opacity: 1 - progress,
+        });
+
+        if (marquee) {
+          gsap.set(marquee, {
+            scale: 1 + progress * 0.15,
+            opacity: 1 - progress,
+          });
+        }
+
+        gsap.set(scrollIndicator, {
+          scale: 1 + progress * 0.1,
+          opacity:
+            progress > 0.02 ? 0 : 1,
+        });
+      };
+
+      mobileScrollHandler = renderMobile;
+
+      window.addEventListener(
+        "scroll",
+        mobileScrollHandler,
+        {
+          passive: true,
+        },
+      );
+
+      renderMobile();
+
+      return () => {
+        heroCtx?.revert();
+
+        window.removeEventListener(
+          "preloader:finished",
+          handlePreloaderFinished,
+        );
+
+        window.clearTimeout(fallbackTimer);
+
+        if (mobileScrollHandler) {
+          window.removeEventListener(
+            "scroll",
+            mobileScrollHandler,
+          );
+        }
+      };
+    }
+
+    /*
+     * -------------------------------------------------------
+     * DESKTOP SCROLL CONFIG
+     * -------------------------------------------------------
+     */
 
     const fadeDistance = 1100;
     const smoothing = 0.075;
@@ -215,12 +428,11 @@ const Hero = () => {
     const clamp = (value: number) =>
       Math.min(1, Math.max(0, value));
 
-    /* -------------------------------------------------------
-       QUICK SETTERS
-    ------------------------------------------------------- */
-        /* -------------------------------------------------------
-       QUICK SETTERS
-    ------------------------------------------------------- */
+    /*
+     * -------------------------------------------------------
+     * QUICK SETTERS
+     * -------------------------------------------------------
+     */
 
     const setPortraitY = gsap.quickSetter(
       portrait,
@@ -228,62 +440,51 @@ const Hero = () => {
       "px",
     );
 
-    const setPortraitOpacity = gsap.quickSetter(
-      portrait,
-      "opacity",
-    );
+    const setPortraitOpacity =
+      gsap.quickSetter(
+        portrait,
+        "opacity",
+      );
 
-    const setContentScaleX = gsap.quickSetter(
+    const setContentScale = gsap.quickSetter(
       content,
-      "scaleX",
+      "scale",
     );
 
-    const setContentScaleY = gsap.quickSetter(
-      content,
-      "scaleY",
-    );
+    const setContentOpacity =
+      gsap.quickSetter(
+        content,
+        "opacity",
+      );
 
-    const setContentOpacity = gsap.quickSetter(
-      content,
-      "opacity",
-    );
+    const setMarqueeScale = marquee
+      ? gsap.quickSetter(marquee, "scale")
+      : null;
 
-    const setMarqueeScaleX = gsap.quickSetter(
-      marquee,
-      "scaleX",
-    );
+    const setMarqueeOpacity = marquee
+      ? gsap.quickSetter(
+          marquee,
+          "opacity",
+        )
+      : null;
 
-    const setMarqueeScaleY = gsap.quickSetter(
-      marquee,
-      "scaleY",
-    );
+    const setIndicatorScale =
+      gsap.quickSetter(
+        scrollIndicator,
+        "scale",
+      );
 
-    const setMarqueeOpacity = gsap.quickSetter(
-      marquee,
-      "opacity",
-    );
+    const setIndicatorOpacity =
+      gsap.quickSetter(
+        scrollIndicator,
+        "opacity",
+      );
 
-    const setIndicatorScaleX = gsap.quickSetter(
-      scrollIndicator,
-      "scaleX",
-    );
-
-    const setIndicatorScaleY = gsap.quickSetter(
-      scrollIndicator,
-      "scaleY",
-    );
-
-    const setIndicatorOpacity = gsap.quickSetter(
-      scrollIndicator,
-      "opacity",
-    );
-    /* -------------------------------------------------------
-       SCROLL RENDER
-    ------------------------------------------------------- */
-
-        /* -------------------------------------------------------
-       SCROLL RENDER
-    ------------------------------------------------------- */
+    /*
+     * -------------------------------------------------------
+     * SCROLL RENDER
+     * -------------------------------------------------------
+     */
 
     const render = (progress: number) => {
       const p = clamp(progress);
@@ -291,43 +492,43 @@ const Hero = () => {
       setPortraitY(p * 130);
       setPortraitOpacity(1 - p);
 
-      const contentScale = 1 + p * 0.8;
-
-      setContentScaleX(contentScale);
-      setContentScaleY(contentScale);
+      setContentScale(1 + p * 0.8);
       setContentOpacity(1 - p);
 
-      const marqueeScale = 1 + p * 0.5;
-
-      setMarqueeScaleX(marqueeScale);
-      setMarqueeScaleY(marqueeScale);
-      setMarqueeOpacity(1 - p);
+      if (
+        marquee &&
+        setMarqueeScale &&
+        setMarqueeOpacity
+      ) {
+        setMarqueeScale(1 + p * 0.5);
+        setMarqueeOpacity(1 - p);
+      }
 
       if (!hasStartedScrolling) {
-        setIndicatorScaleX(1);
-        setIndicatorScaleY(1);
+        setIndicatorScale(1);
         setIndicatorOpacity(1);
       } else {
-        const indicatorScale = 1 + p * 0.25;
-
-        setIndicatorScaleX(indicatorScale);
-        setIndicatorScaleY(indicatorScale);
+        setIndicatorScale(1 + p * 0.25);
         setIndicatorOpacity(0);
       }
     };
 
     render(0);
 
-    /* -------------------------------------------------------
-       SCROLL LOCK
-    ------------------------------------------------------- */
+    /*
+     * -------------------------------------------------------
+     * SCROLL LOCK
+     * -------------------------------------------------------
+     */
 
     const lockScroll = () => {
       if (locked) return;
 
       locked = true;
 
-      document.documentElement.style.overflow = "hidden";
+      document.documentElement.style.overflow =
+        "hidden";
+
       document.body.style.overflow = "hidden";
     };
 
@@ -336,13 +537,17 @@ const Hero = () => {
 
       locked = false;
 
-      document.documentElement.style.overflow = "";
+      document.documentElement.style.overflow =
+        "";
+
       document.body.style.overflow = "";
     };
 
-    /* -------------------------------------------------------
-       COMPLETE HERO
-    ------------------------------------------------------- */
+    /*
+     * -------------------------------------------------------
+     * COMPLETE HERO
+     * -------------------------------------------------------
+     */
 
     const completeHero = () => {
       targetProgress = 1;
@@ -360,19 +565,22 @@ const Hero = () => {
       completeHero,
     );
 
-    /* -------------------------------------------------------
-       RESTORE HERO
-    ------------------------------------------------------- */
+    /*
+     * -------------------------------------------------------
+     * RESTORE HERO
+     * -------------------------------------------------------
+     */
 
     const restoreHero = () => {
       targetProgress = 0;
       currentProgress = 0;
+
       hasStartedScrolling = false;
 
       gsap.killTweensOf([
         portrait,
         content,
-        marquee,
+        ...(marquee ? [marquee] : []),
         scrollIndicator,
         location,
         heading,
@@ -391,10 +599,12 @@ const Hero = () => {
         opacity: 1,
       });
 
-      gsap.set(marquee, {
-        scale: 1,
-        opacity: 1,
-      });
+      if (marquee) {
+        gsap.set(marquee, {
+          scale: 1,
+          opacity: 1,
+        });
+      }
 
       gsap.set(scrollIndicator, {
         scale: 1,
@@ -413,12 +623,15 @@ const Hero = () => {
           },
         });
 
-        restore
-          .to(marquee, {
+        if (marquee) {
+          restore.to(marquee, {
             y: 0,
             opacity: 1,
             duration: 0.7,
-          })
+          });
+        }
+
+        restore
           .to(
             location,
             {
@@ -426,7 +639,7 @@ const Hero = () => {
               opacity: 1,
               duration: 0.6,
             },
-            "-=0.45",
+            marquee ? "-=0.45" : 0,
           )
           .to(
             heading,
@@ -480,8 +693,11 @@ const Hero = () => {
         });
       }
 
-      document.documentElement.style.overflow = "hidden";
-      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow =
+        "hidden";
+
+      document.body.style.overflow =
+        "hidden";
 
       locked = true;
     };
@@ -495,14 +711,19 @@ const Hero = () => {
       lockScroll();
     }
 
-    /* -------------------------------------------------------
-       APPLY DELTA
-    ------------------------------------------------------- */
+    /*
+     * -------------------------------------------------------
+     * APPLY DELTA
+     * -------------------------------------------------------
+     */
 
     const applyDelta = (delta: number) => {
       if (delta === 0) return;
 
-      if (delta > 0 && !hasStartedScrolling) {
+      if (
+        delta > 0 &&
+        !hasStartedScrolling
+      ) {
         hasStartedScrolling = true;
 
         gsap.to(scrollIndicator, {
@@ -520,12 +741,18 @@ const Hero = () => {
       );
 
       targetProgress = clamp(
-        targetProgress + safeDelta / fadeDistance,
+        targetProgress +
+          safeDelta / fadeDistance,
       );
 
       if (targetProgress >= 1) {
         targetProgress = 1;
-        currentProgress = Math.min(currentProgress, 1);
+
+        currentProgress = Math.min(
+          currentProgress,
+          1,
+        );
+
         unlockScroll();
       }
 
@@ -542,14 +769,20 @@ const Hero = () => {
       }
     };
 
-    /* -------------------------------------------------------
-       WHEEL
-    ------------------------------------------------------- */
+    /*
+     * -------------------------------------------------------
+     * WHEEL
+     * -------------------------------------------------------
+     */
 
-    const handleWheel = (event: WheelEvent) => {
+    const handleWheel = (
+      event: WheelEvent,
+    ) => {
       if (locked) {
         event.preventDefault();
+
         applyDelta(event.deltaY);
+
         return;
       }
 
@@ -558,14 +791,18 @@ const Hero = () => {
         window.scrollY <= 1
       ) {
         event.preventDefault();
+
         lockScroll();
+
         applyDelta(event.deltaY);
       }
     };
 
-    /* -------------------------------------------------------
-       KEYBOARD
-    ------------------------------------------------------- */
+    /*
+     * -------------------------------------------------------
+     * KEYBOARD
+     * -------------------------------------------------------
+     */
 
     const handleKeyDown = (
       event: KeyboardEvent,
@@ -589,28 +826,38 @@ const Hero = () => {
           case "ArrowDown":
             delta = 70;
             break;
+
           case "ArrowUp":
             delta = -70;
             break;
+
           case "PageDown":
             delta = 220;
             break;
+
           case "PageUp":
             delta = -220;
             break;
+
           case " ":
           case "Spacebar":
-            delta = event.shiftKey ? -220 : 220;
+            delta = event.shiftKey
+              ? -220
+              : 220;
             break;
+
           case "Home":
             delta = -fadeDistance;
             break;
+
           default:
             return;
         }
 
         event.preventDefault();
+
         applyDelta(delta);
+
         return;
       }
 
@@ -620,10 +867,15 @@ const Hero = () => {
         targetProgress > 0
       ) {
         event.preventDefault();
+
         lockScroll();
+
         applyDelta(
-          event.key === "PageUp" ? -220 : -70,
+          event.key === "PageUp"
+            ? -220
+            : -70,
         );
+
         return;
       }
 
@@ -639,6 +891,7 @@ const Hero = () => {
         });
 
         restoreHero();
+
         return;
       }
 
@@ -647,28 +900,42 @@ const Hero = () => {
       }
     };
 
-    /* -------------------------------------------------------
-       NORMAL SCROLL
-    ------------------------------------------------------- */
+    /*
+     * -------------------------------------------------------
+     * NORMAL SCROLL
+     * -------------------------------------------------------
+     */
 
     const handleScroll = () => {
-      if (!locked && window.scrollY <= 1) {
+      if (
+        !locked &&
+        window.scrollY <= 1
+      ) {
         targetProgress = 1;
         currentProgress = 1;
+
         render(1);
+
         lockScroll();
       }
     };
 
-    /* -------------------------------------------------------
-       TOUCH
-    ------------------------------------------------------- */
+    /*
+     * -------------------------------------------------------
+     * TOUCH
+     *
+     * Desktop/tablet custom interaction only.
+     * Mobile is handled by native scrolling.
+     * -------------------------------------------------------
+     */
 
     const handleTouchStart = (
       event: TouchEvent,
     ) => {
       const touch = event.touches[0];
+
       if (!touch) return;
+
       touchY = touch.clientY;
     };
 
@@ -686,11 +953,12 @@ const Hero = () => {
       }
 
       const delta =
-        (touchY - touch.clientY) * 1.5;
+        (touchY - touch.clientY) * 1.2;
 
       touchY = touch.clientY;
 
       event.preventDefault();
+
       applyDelta(delta);
     };
 
@@ -698,9 +966,11 @@ const Hero = () => {
       touchY = null;
     };
 
-    /* -------------------------------------------------------
-       SMOOTH LOOP
-    ------------------------------------------------------- */
+    /*
+     * -------------------------------------------------------
+     * SMOOTH LOOP
+     * -------------------------------------------------------
+     */
 
     const tick = () => {
       const difference =
@@ -709,8 +979,12 @@ const Hero = () => {
       currentProgress +=
         difference * smoothing;
 
-      if (Math.abs(difference) < 0.0005) {
-        currentProgress = targetProgress;
+      if (
+        Math.abs(difference) <
+        0.0005
+      ) {
+        currentProgress =
+          targetProgress;
       }
 
       render(currentProgress);
@@ -719,14 +993,18 @@ const Hero = () => {
         requestAnimationFrame(tick);
     };
 
-    /* -------------------------------------------------------
-       EVENTS
-    ------------------------------------------------------- */
+    /*
+     * -------------------------------------------------------
+     * EVENTS
+     * -------------------------------------------------------
+     */
 
     window.addEventListener(
       "wheel",
       handleWheel,
-      { passive: false },
+      {
+        passive: false,
+      },
     );
 
     window.addEventListener(
@@ -737,19 +1015,25 @@ const Hero = () => {
     window.addEventListener(
       "scroll",
       handleScroll,
-      { passive: true },
+      {
+        passive: true,
+      },
     );
 
     window.addEventListener(
       "touchstart",
       handleTouchStart,
-      { passive: true },
+      {
+        passive: true,
+      },
     );
 
     window.addEventListener(
       "touchmove",
       handleTouchMove,
-      { passive: false },
+      {
+        passive: false,
+      },
     );
 
     window.addEventListener(
@@ -757,21 +1041,26 @@ const Hero = () => {
       handleTouchEnd,
     );
 
-    rafId = requestAnimationFrame(tick);
+    rafId =
+      requestAnimationFrame(tick);
 
-    /* -------------------------------------------------------
-       CLEANUP
-    ------------------------------------------------------- */
+    /*
+     * -------------------------------------------------------
+     * CLEANUP
+     * -------------------------------------------------------
+     */
 
     return () => {
-      if (heroCtx) heroCtx.revert();
+      heroCtx?.revert();
 
       window.removeEventListener(
         "preloader:finished",
         handlePreloaderFinished,
       );
 
-      window.clearTimeout(fallbackTimer);
+      window.clearTimeout(
+        fallbackTimer,
+      );
 
       window.removeEventListener(
         "hero:complete",
@@ -817,10 +1106,13 @@ const Hero = () => {
         cancelAnimationFrame(rafId);
       }
 
-      document.documentElement.style.overflow = "";
-      document.body.style.overflow = "";
+      document.documentElement.style.overflow =
+        "";
+
+      document.body.style.overflow =
+        "";
     };
-  }, []);
+  }, [isArabic]);
 
   return (
     <section
@@ -864,11 +1156,13 @@ const Hero = () => {
           "
         >
           <video
+            ref={videoRef}
             autoPlay
             loop
             muted
             playsInline
             preload="auto"
+            poster="/images/nasir.avif"
             aria-hidden="true"
             className="
               h-full
@@ -898,63 +1192,67 @@ const Hero = () => {
           />
         </div>
 
-        {/* MARQUEE */}
-        <div
-          ref={marqueeRef}
-          className="
-            absolute
-            left-0
-            top-[32%]
-            z-10
-            w-full
-            origin-center
-            overflow-hidden
-            pointer-events-none
-            select-none
-            sm:top-[35%]
-          "
-        >
+        {/* MARQUEE — hidden completely in Arabic */}
+        {!isArabic && (
           <div
+            ref={marqueeRef}
             className="
-              inline-flex
-              whitespace-nowrap
+              absolute
+              left-0
+              top-[32%]
+              z-10
+              w-full
+              origin-center
+              translate-y-6
+              overflow-hidden
+              pointer-events-none
+              select-none
+              opacity-0
+              sm:top-[35%]
             "
           >
-            <span
+            <div
               className="
-                pr-8
-                font-brand
-                font-bold
-                uppercase
-                leading-none
-                tracking-[-0.04em]
-                text-white/22
-                text-[clamp(90px,26vw,170px)]
-                sm:text-[clamp(140px,18vw,320px)]
-                animate-marquee
+                inline-flex
+                whitespace-nowrap
               "
             >
-              {t("marquee")}
-            </span>
+              <span
+                className="
+                  pr-8
+                  font-brand
+                  font-bold
+                  uppercase
+                  leading-none
+                  tracking-[-0.04em]
+                  text-white/22
+                  text-[clamp(90px,26vw,170px)]
+                  sm:text-[clamp(140px,18vw,320px)]
+                  animate-marquee
+                "
+              >
+                {t("marquee")}
+              </span>
 
-            <span
-              aria-hidden="true"
-              className="
-                pr-8
-                font-brand
-                font-bold
-                uppercase
-                leading-none
-                tracking-[-0.04em]
-                text-white/22
-                text-[clamp(90px,26vw,170px)]
-                sm:text-[clamp(140px,18vw,320px)]
-              "
-            >
-              {t("marquee")}
-            </span>
+              <span
+                aria-hidden="true"
+                className="
+                  pr-8
+                  font-brand
+                  font-bold
+                  uppercase
+                  leading-none
+                  tracking-[-0.04em]
+                  text-white/22
+                  text-[clamp(90px,26vw,170px)]
+                  sm:text-[clamp(140px,18vw,320px)]
+                "
+              >
+                {t("marquee")}
+              </span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* WHITE LOWER GRADIENT */}
         <div
@@ -1000,8 +1298,8 @@ const Hero = () => {
             "
           >
             <div
-              style={{ position: "relative" }}
               className="
+                relative
                 flex
                 h-[58vh]
                 w-full
@@ -1023,10 +1321,10 @@ const Hero = () => {
                 loading="eager"
                 sizes="(max-width: 640px) 95vw, (max-width: 1024px) 85vw, 1250px"
                 className="
+                  pointer-events-none
                   select-none
                   object-contain
                   object-bottom
-                  pointer-events-none
                   drop-shadow-[0_12px_28px_rgba(0,0,0,0.18)]
                 "
               />
@@ -1119,6 +1417,7 @@ const Hero = () => {
                   className="
                     mb-2
                     inline-flex
+                    translate-y-6
                     items-center
                     gap-2
                     rounded-full
@@ -1132,6 +1431,7 @@ const Hero = () => {
                     uppercase
                     tracking-[0.18em]
                     text-neutral-700
+                    opacity-0
                     shadow-xs
                     backdrop-blur-sm
                     sm:mb-3
@@ -1153,13 +1453,16 @@ const Hero = () => {
                     "
                   />
 
-                  <span>{t("location")}</span>
+                  <span>
+                    {t("location")}
+                  </span>
                 </div>
 
                 {/* HEADING */}
                 <h1
                   ref={headingRef}
                   className="
+                    translate-y-6
                     font-brand
                     text-4xl
                     font-bold
@@ -1167,6 +1470,7 @@ const Hero = () => {
                     leading-none
                     tracking-[-0.04em]
                     text-neutral-950
+                    opacity-0
                     sm:text-6xl
                     md:text-7xl
                     lg:text-8xl
@@ -1176,7 +1480,9 @@ const Hero = () => {
                 </h1>
 
                 <h2 className="sr-only">
-                  {accessibility("heroTitle")}
+                  {accessibility(
+                    "heroTitle",
+                  )}
                 </h2>
 
                 {/* ROLE */}
@@ -1184,11 +1490,13 @@ const Hero = () => {
                   ref={roleRef}
                   className="
                     mt-2.5
+                    translate-y-6
                     text-[10px]
                     font-semibold
                     uppercase
                     tracking-[0.18em]
                     text-neutral-600
+                    opacity-0
                     sm:mt-4
                     sm:text-xs
                     sm:tracking-[0.25em]
@@ -1215,10 +1523,12 @@ const Hero = () => {
                 <p
                   ref={descriptionRef}
                   className="
+                    translate-y-6
                     text-xs
                     font-normal
                     leading-relaxed
                     text-neutral-800
+                    opacity-0
                     sm:text-base
                     md:text-[17px]
                   "
@@ -1227,33 +1537,49 @@ const Hero = () => {
                 </p>
 
                 {/* BUTTON */}
-                <div ref={buttonRef}>
+                <div
+                  ref={buttonRef}
+                  className="
+                    translate-y-6
+                    opacity-0
+                  "
+                >
                   <Button
                     href="#journey"
                     onClick={(event) => {
                       event.preventDefault();
 
                       window.dispatchEvent(
-                        new Event("hero:complete"),
+                        new Event(
+                          "hero:complete",
+                        ),
                       );
 
-                      requestAnimationFrame(() => {
-                        const journey =
-                          document.getElementById("journey");
+                      requestAnimationFrame(
+                        () => {
+                          const journey =
+                            document.getElementById(
+                              "journey",
+                            );
 
-                        if (!journey) return;
+                          if (!journey)
+                            return;
 
-                        journey.scrollIntoView({
-                          behavior: "smooth",
-                          block: "start",
-                        });
+                          journey.scrollIntoView(
+                            {
+                              behavior:
+                                "smooth",
+                              block: "start",
+                            },
+                          );
 
-                        window.history.pushState(
-                          null,
-                          "",
-                          "#journey",
-                        );
-                      });
+                          window.history.pushState(
+                            null,
+                            "",
+                            "#journey",
+                          );
+                        },
+                      );
                     }}
                     className="
                       mt-4
@@ -1279,12 +1605,14 @@ const Hero = () => {
             z-30
             hidden
             -translate-x-1/2
+            translate-y-6
             select-none
             flex-col
             items-center
             gap-2
             text-center
             pointer-events-none
+            opacity-0
             sm:bottom-8
             sm:flex
           "
@@ -1307,7 +1635,11 @@ const Hero = () => {
             "
           >
             <ArrowDown
-              className="h-3.5 w-3.5 stroke-2"
+              className="
+                h-3.5
+                w-3.5
+                stroke-2
+              "
               aria-hidden="true"
             />
           </div>
