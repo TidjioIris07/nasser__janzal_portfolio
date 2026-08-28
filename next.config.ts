@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  allowedDevOrigins: ["10.247.3.140"],
 };
 
 export default createNextIntlPlugin("./i18n/request.ts")(nextConfig);

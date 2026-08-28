@@ -11,6 +11,7 @@ const Hero = () => {
   const t = useTranslations("hero");
   const brand = useTranslations("brand");
   const accessibility = useTranslations("accessibility");
+
   const heroRef = useRef<HTMLElement>(null);
 
   /* Scroll animation refs */
@@ -76,10 +77,10 @@ const Hero = () => {
     ------------------------------------------------------- */
 
     let introPlayed = false;
+    let heroCtx: gsap.Context;
 
     const animateHero = () => {
       if (introPlayed) return;
-
       introPlayed = true;
 
       if (reduceMotion) {
@@ -88,11 +89,10 @@ const Hero = () => {
           y: 0,
           opacity: 1,
         });
-
         return;
       }
 
-      gsap.context(() => {
+      heroCtx = gsap.context(() => {
         gsap.set(revealElements, {
           y: 24,
           opacity: 0,
@@ -218,6 +218,9 @@ const Hero = () => {
     /* -------------------------------------------------------
        QUICK SETTERS
     ------------------------------------------------------- */
+        /* -------------------------------------------------------
+       QUICK SETTERS
+    ------------------------------------------------------- */
 
     const setPortraitY = gsap.quickSetter(
       portrait,
@@ -230,9 +233,14 @@ const Hero = () => {
       "opacity",
     );
 
-    const setContentScale = gsap.quickSetter(
+    const setContentScaleX = gsap.quickSetter(
       content,
-      "scale",
+      "scaleX",
+    );
+
+    const setContentScaleY = gsap.quickSetter(
+      content,
+      "scaleY",
     );
 
     const setContentOpacity = gsap.quickSetter(
@@ -240,9 +248,14 @@ const Hero = () => {
       "opacity",
     );
 
-    const setMarqueeScale = gsap.quickSetter(
+    const setMarqueeScaleX = gsap.quickSetter(
       marquee,
-      "scale",
+      "scaleX",
+    );
+
+    const setMarqueeScaleY = gsap.quickSetter(
+      marquee,
+      "scaleY",
     );
 
     const setMarqueeOpacity = gsap.quickSetter(
@@ -250,45 +263,55 @@ const Hero = () => {
       "opacity",
     );
 
-    const setIndicatorScale = gsap.quickSetter(
+    const setIndicatorScaleX = gsap.quickSetter(
       scrollIndicator,
-      "scale",
+      "scaleX",
+    );
+
+    const setIndicatorScaleY = gsap.quickSetter(
+      scrollIndicator,
+      "scaleY",
     );
 
     const setIndicatorOpacity = gsap.quickSetter(
       scrollIndicator,
       "opacity",
     );
-
     /* -------------------------------------------------------
+       SCROLL RENDER
+    ------------------------------------------------------- */
+
+        /* -------------------------------------------------------
        SCROLL RENDER
     ------------------------------------------------------- */
 
     const render = (progress: number) => {
       const p = clamp(progress);
 
-      /* Portrait */
-
       setPortraitY(p * 130);
       setPortraitOpacity(1 - p);
 
-      /* Main content */
+      const contentScale = 1 + p * 0.8;
 
-      setContentScale(1 + p * 0.8);
+      setContentScaleX(contentScale);
+      setContentScaleY(contentScale);
       setContentOpacity(1 - p);
 
-      /* Marquee */
+      const marqueeScale = 1 + p * 0.5;
 
-      setMarqueeScale(1 + p * 0.5);
+      setMarqueeScaleX(marqueeScale);
+      setMarqueeScaleY(marqueeScale);
       setMarqueeOpacity(1 - p);
 
-      /* Scroll indicator */
-
       if (!hasStartedScrolling) {
-        setIndicatorScale(1);
+        setIndicatorScaleX(1);
+        setIndicatorScaleY(1);
         setIndicatorOpacity(1);
       } else {
-        setIndicatorScale(1 + p * 0.25);
+        const indicatorScale = 1 + p * 0.25;
+
+        setIndicatorScaleX(indicatorScale);
+        setIndicatorScaleY(indicatorScale);
         setIndicatorOpacity(0);
       }
     };
@@ -319,8 +342,6 @@ const Hero = () => {
 
     /* -------------------------------------------------------
        COMPLETE HERO
-       
-       Used by the "Discover My Story" button.
     ------------------------------------------------------- */
 
     const completeHero = () => {
@@ -470,10 +491,6 @@ const Hero = () => {
       restoreHero,
     );
 
-    /* -------------------------------------------------------
-       INITIAL LOCK
-    ------------------------------------------------------- */
-
     if (window.scrollY <= 1) {
       lockScroll();
     }
@@ -503,17 +520,12 @@ const Hero = () => {
       );
 
       targetProgress = clamp(
-        targetProgress +
-          safeDelta / fadeDistance,
+        targetProgress + safeDelta / fadeDistance,
       );
 
       if (targetProgress >= 1) {
         targetProgress = 1;
-        currentProgress = Math.min(
-          currentProgress,
-          1,
-        );
-
+        currentProgress = Math.min(currentProgress, 1);
         unlockScroll();
       }
 
@@ -537,9 +549,7 @@ const Hero = () => {
     const handleWheel = (event: WheelEvent) => {
       if (locked) {
         event.preventDefault();
-
         applyDelta(event.deltaY);
-
         return;
       }
 
@@ -548,9 +558,7 @@ const Hero = () => {
         window.scrollY <= 1
       ) {
         event.preventDefault();
-
         lockScroll();
-
         applyDelta(event.deltaY);
       }
     };
@@ -581,38 +589,28 @@ const Hero = () => {
           case "ArrowDown":
             delta = 70;
             break;
-
           case "ArrowUp":
             delta = -70;
             break;
-
           case "PageDown":
             delta = 220;
             break;
-
           case "PageUp":
             delta = -220;
             break;
-
           case " ":
           case "Spacebar":
-            delta = event.shiftKey
-              ? -220
-              : 220;
+            delta = event.shiftKey ? -220 : 220;
             break;
-
           case "Home":
             delta = -fadeDistance;
             break;
-
           default:
             return;
         }
 
         event.preventDefault();
-
         applyDelta(delta);
-
         return;
       }
 
@@ -622,15 +620,10 @@ const Hero = () => {
         targetProgress > 0
       ) {
         event.preventDefault();
-
         lockScroll();
-
         applyDelta(
-          event.key === "PageUp"
-            ? -220
-            : -70,
+          event.key === "PageUp" ? -220 : -70,
         );
-
         return;
       }
 
@@ -646,7 +639,6 @@ const Hero = () => {
         });
 
         restoreHero();
-
         return;
       }
 
@@ -660,15 +652,10 @@ const Hero = () => {
     ------------------------------------------------------- */
 
     const handleScroll = () => {
-      if (
-        !locked &&
-        window.scrollY <= 1
-      ) {
+      if (!locked && window.scrollY <= 1) {
         targetProgress = 1;
         currentProgress = 1;
-
         render(1);
-
         lockScroll();
       }
     };
@@ -681,9 +668,7 @@ const Hero = () => {
       event: TouchEvent,
     ) => {
       const touch = event.touches[0];
-
       if (!touch) return;
-
       touchY = touch.clientY;
     };
 
@@ -706,7 +691,6 @@ const Hero = () => {
       touchY = touch.clientY;
 
       event.preventDefault();
-
       applyDelta(delta);
     };
 
@@ -725,11 +709,8 @@ const Hero = () => {
       currentProgress +=
         difference * smoothing;
 
-      if (
-        Math.abs(difference) < 0.0005
-      ) {
-        currentProgress =
-          targetProgress;
+      if (Math.abs(difference) < 0.0005) {
+        currentProgress = targetProgress;
       }
 
       render(currentProgress);
@@ -776,22 +757,21 @@ const Hero = () => {
       handleTouchEnd,
     );
 
-    rafId =
-      requestAnimationFrame(tick);
+    rafId = requestAnimationFrame(tick);
 
     /* -------------------------------------------------------
        CLEANUP
     ------------------------------------------------------- */
 
     return () => {
+      if (heroCtx) heroCtx.revert();
+
       window.removeEventListener(
         "preloader:finished",
         handlePreloaderFinished,
       );
 
-      window.clearTimeout(
-        fallbackTimer,
-      );
+      window.clearTimeout(fallbackTimer);
 
       window.removeEventListener(
         "hero:complete",
@@ -837,9 +817,7 @@ const Hero = () => {
         cancelAnimationFrame(rafId);
       }
 
-      document.documentElement.style.overflow =
-        "";
-
+      document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
     };
   }, []);
@@ -940,7 +918,6 @@ const Hero = () => {
             className="
               inline-flex
               whitespace-nowrap
-              will-change-transform
             "
           >
             <span
@@ -1004,7 +981,6 @@ const Hero = () => {
             flex
             items-end
             justify-center
-            will-change-transform
           "
         >
           <div
@@ -1044,7 +1020,7 @@ const Hero = () => {
                 alt={t("portraitAlt")}
                 fill
                 priority
-                // loading="eager"
+                loading="eager"
                 sizes="(max-width: 640px) 95vw, (max-width: 1024px) 85vw, 1250px"
                 className="
                   select-none
@@ -1121,7 +1097,6 @@ const Hero = () => {
                 items-start
                 justify-between
                 gap-4
-                will-change-transform
                 sm:gap-6
                 md:flex-row
                 md:items-end
@@ -1164,7 +1139,6 @@ const Hero = () => {
                     sm:py-1.5
                     sm:text-[11px]
                     sm:tracking-[0.2em]
-                    will-change-transform
                   "
                 >
                   <span
@@ -1179,9 +1153,7 @@ const Hero = () => {
                     "
                   />
 
-                  <span>
-                    {t("location")}
-                  </span>
+                  <span>{t("location")}</span>
                 </div>
 
                 {/* HEADING */}
@@ -1195,7 +1167,6 @@ const Hero = () => {
                     leading-none
                     tracking-[-0.04em]
                     text-neutral-950
-                    will-change-transform
                     sm:text-6xl
                     md:text-7xl
                     lg:text-8xl
@@ -1204,7 +1175,6 @@ const Hero = () => {
                   {brand("name")}
                 </h1>
 
-                {/* SEO */}
                 <h2 className="sr-only">
                   {accessibility("heroTitle")}
                 </h2>
@@ -1219,7 +1189,6 @@ const Hero = () => {
                     uppercase
                     tracking-[0.18em]
                     text-neutral-600
-                    will-change-transform
                     sm:mt-4
                     sm:text-xs
                     sm:tracking-[0.25em]
@@ -1250,7 +1219,6 @@ const Hero = () => {
                     font-normal
                     leading-relaxed
                     text-neutral-800
-                    will-change-transform
                     sm:text-base
                     md:text-[17px]
                   "
@@ -1259,34 +1227,19 @@ const Hero = () => {
                 </p>
 
                 {/* BUTTON */}
-                <div
-                  ref={buttonRef}
-                  className="will-change-transform"
-                >
+                <div ref={buttonRef}>
                   <Button
                     href="#journey"
                     onClick={(event) => {
                       event.preventDefault();
 
-                      /*
-                       * Tell Hero to:
-                       * 1. Complete the fake scroll
-                       * 2. Fade/position everything as finished
-                       * 3. Unlock real document scrolling
-                       */
                       window.dispatchEvent(
                         new Event("hero:complete"),
                       );
 
-                      /*
-                       * Wait one frame so the browser
-                       * sees the document as scrollable.
-                       */
                       requestAnimationFrame(() => {
                         const journey =
-                          document.getElementById(
-                            "journey",
-                          );
+                          document.getElementById("journey");
 
                         if (!journey) return;
 
@@ -1332,7 +1285,6 @@ const Hero = () => {
             gap-2
             text-center
             pointer-events-none
-            will-change-transform
             sm:bottom-8
             sm:flex
           "

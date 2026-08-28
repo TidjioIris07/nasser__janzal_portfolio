@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+
 import gsap from "gsap";
+
 import { useTranslations } from "next-intl";
 
 interface PreloaderProps {
@@ -47,27 +49,49 @@ export default function Preloader({
       return;
     }
 
+    /*
+     * Disable heavy blur effects on mobile.
+     *
+     * WebKit/Safari can be especially expensive when animating
+     * CSS filters on large text during the intro sequence.
+     */
+    const isMobile = window.matchMedia(
+      "(max-width: 767px)",
+    ).matches;
+
+    const titleInitialState = {
+      y: 70,
+      opacity: 0,
+      ...(isMobile ? {} : { filter: "blur(18px)" }),
+    };
+
+    const subtitleInitialState = {
+      y: 25,
+      opacity: 0,
+      ...(isMobile ? {} : { filter: "blur(8px)" }),
+    };
+
     let finished = false;
 
     const finishPreloader = () => {
       if (finished) return;
 
       finished = true;
-
       setVisible(false);
+
       document.body.style.overflow = "";
 
-      window.dispatchEvent(new Event("preloader:finished"));
+      window.dispatchEvent(
+        new Event("preloader:finished"),
+      );
+
       onFinish?.();
     };
 
-    /*
-     * SAFETY FALLBACK
-     * ---------------------------------------------
-     * If GSAP or Safari fails to complete the
-     * animation for any reason, never leave the
-     * preloader covering the website indefinitely.
-     */
+    /* -------------------------------------------------------
+       SAFETY FALLBACK
+    ------------------------------------------------------- */
+
     const fallbackTimer = window.setTimeout(() => {
       finishPreloader();
     }, 5000);
@@ -75,22 +99,17 @@ export default function Preloader({
     const ctx = gsap.context(() => {
       const progressValue = { value: 0 };
 
-      // Initial states
+      /* -------------------------------------------------------
+         INITIAL STATES
+      ------------------------------------------------------- */
+
       gsap.set(curtain, {
         yPercent: 0,
       });
 
-      gsap.set(title, {
-        y: 70,
-        opacity: 0,
-        filter: "blur(18px)",
-      });
+      gsap.set(title, titleInitialState);
 
-      gsap.set(subtitle, {
-        y: 25,
-        opacity: 0,
-        filter: "blur(8px)",
-      });
+      gsap.set(subtitle, subtitleInitialState);
 
       gsap.set(progress, {
         scaleX: 0,
@@ -101,13 +120,16 @@ export default function Preloader({
         opacity: 1,
       });
 
-      // Intro
+      /* -------------------------------------------------------
+         INTRO
+      ------------------------------------------------------- */
+
       const intro = gsap.timeline();
 
       intro.to(title, {
         y: 0,
         opacity: 1,
-        filter: "blur(0px)",
+        ...(isMobile ? {} : { filter: "blur(0px)" }),
         duration: 1.1,
         ease: "power3.out",
       });
@@ -117,19 +139,21 @@ export default function Preloader({
         {
           y: 0,
           opacity: 1,
-          filter: "blur(0px)",
+          ...(isMobile ? {} : { filter: "blur(0px)" }),
           duration: 0.8,
           ease: "power3.out",
         },
         "-=0.65",
       );
 
-      // Progress
+      /* -------------------------------------------------------
+         PROGRESS
+      ------------------------------------------------------- */
+
       const loading = gsap.to(progressValue, {
         value: 100,
         duration: 2.4,
         ease: "power2.out",
-
         onUpdate: () => {
           const value = Math.round(progressValue.value);
 
@@ -141,25 +165,31 @@ export default function Preloader({
         },
       });
 
-      // After loading
+      /* -------------------------------------------------------
+         AFTER LOADING
+      ------------------------------------------------------- */
+
       loading.then(() => {
         if (finished) return;
 
         const outro = gsap.timeline();
 
-        // Hide subtitle + progress
+        /* Hide subtitle + progress */
         outro.to(
           [subtitle, progressWrap],
           {
             opacity: 0,
             y: 10,
-            filter: "blur(5px)",
+            ...(isMobile ? {} : { filter: "blur(5px)" }),
             duration: 0.35,
             ease: "power2.inOut",
           },
         );
 
-        // Merge NASSER into navbar
+        /* -------------------------------------------------------
+           MERGE NASSER INTO NAVBAR
+        ------------------------------------------------------- */
+
         outro.add(() => {
           const target = document.querySelector(
             "[data-preloader-logo]",
@@ -167,29 +197,41 @@ export default function Preloader({
 
           if (!target) return;
 
-          const titleRect = title.getBoundingClientRect();
-          const targetRect = target.getBoundingClientRect();
+          const titleRect =
+            title.getBoundingClientRect();
+
+          const targetRect =
+            target.getBoundingClientRect();
 
           const titleCenterX =
-            titleRect.left + titleRect.width / 2;
+            titleRect.left +
+            titleRect.width / 2;
 
           const titleCenterY =
-            titleRect.top + titleRect.height / 2;
+            titleRect.top +
+            titleRect.height / 2;
 
           const targetCenterX =
-            targetRect.left + targetRect.width / 2;
+            targetRect.left +
+            targetRect.width / 2;
 
           const targetCenterY =
-            targetRect.top + targetRect.height / 2;
+            targetRect.top +
+            targetRect.height / 2;
 
-          const x = targetCenterX - titleCenterX;
-          const y = targetCenterY - titleCenterY;
+          const x =
+            targetCenterX - titleCenterX;
+
+          const y =
+            targetCenterY - titleCenterY;
 
           const scaleX =
-            targetRect.width / titleRect.width;
+            targetRect.width /
+            titleRect.width;
 
           const scaleY =
-            targetRect.height / titleRect.height;
+            targetRect.height /
+            titleRect.height;
 
           gsap.to(title, {
             x,
@@ -198,19 +240,20 @@ export default function Preloader({
             scaleY,
             duration: 0.99,
             ease: "power3.inOut",
-
             onStart: () => {
               onLogoMerge?.();
             },
           });
         });
 
-        // Bottom → top curtain reveal
+        /* -------------------------------------------------------
+           BOTTOM → TOP CURTAIN REVEAL
+        ------------------------------------------------------- */
+
         outro.to(curtain, {
           yPercent: -100,
           duration: 1.5,
           ease: "power4.inOut",
-
           onComplete: () => {
             window.clearTimeout(fallbackTimer);
             finishPreloader();
@@ -219,9 +262,15 @@ export default function Preloader({
       });
     }, curtainRef);
 
+    /* -------------------------------------------------------
+       CLEANUP
+    ------------------------------------------------------- */
+
     return () => {
       window.clearTimeout(fallbackTimer);
+
       ctx.revert();
+
       document.body.style.overflow = "";
     };
   }, [onFinish, onLogoMerge]);
@@ -282,7 +331,7 @@ export default function Preloader({
               tracking-[-0.04em]
             "
             style={{
-              willChange: "transform, opacity, filter",
+              willChange: "transform, opacity",
             }}
           >
             {brand("name")}
@@ -306,7 +355,7 @@ export default function Preloader({
               md:text-sm
             "
             style={{
-              willChange: "transform, opacity, filter",
+              willChange: "transform, opacity",
             }}
           >
             {t("subtitle")}
