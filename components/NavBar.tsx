@@ -103,7 +103,14 @@ const NavBar = () => {
 
       if (reduceMotion) {
         gsap.set(
-          [logo, nav, language, socials, cta, mobileRight],
+          [
+            logo,
+            nav,
+            language,
+            socials,
+            cta,
+            mobileRight,
+          ],
           {
             clearProps: "all",
             opacity: 1,
@@ -121,7 +128,14 @@ const NavBar = () => {
          */
 
         gsap.set(
-          [logo, nav, language, socials, cta, mobileRight],
+          [
+            logo,
+            nav,
+            language,
+            socials,
+            cta,
+            mobileRight,
+          ],
           {
             yPercent: -50,
             opacity: 0,
@@ -217,30 +231,37 @@ const NavBar = () => {
     };
 
     /* -------------------------------------------------------
-       WAIT FOR HERO RESTORE
+       WAIT FOR PRELOADER
     ------------------------------------------------------- */
 
-    const handleHeroRestore = () => {
-      animationPlayed = false;
-
-      ctx?.revert();
-      ctx = null;
-
+    const handlePreloaderFinished = () => {
       animateNavbar();
     };
 
     window.addEventListener(
-      "hero:restore",
-      handleHeroRestore,
+      "preloader:finished",
+      handlePreloaderFinished,
     );
 
-    /* -------------------------------------------------------
-       INITIAL NAVBAR ANIMATION
-    ------------------------------------------------------- */
+    /*
+     * Fallback:
+     *
+     * If the preloader has already finished before this
+     * component registered its listener, check whether the
+     * preloader is still present.
+     */
 
-    const initialTimer = window.setTimeout(() => {
-      animateNavbar();
-    }, 0);
+    const fallbackTimer = window.setTimeout(() => {
+      if (animationPlayed) return;
+
+      const preloader = document.querySelector(
+        ".preloader-curtain",
+      );
+
+      if (!preloader) {
+        animateNavbar();
+      }
+    }, 100);
 
     /* -------------------------------------------------------
        CLEANUP
@@ -250,11 +271,11 @@ const NavBar = () => {
       ctx?.revert();
 
       window.removeEventListener(
-        "hero:restore",
-        handleHeroRestore,
+        "preloader:finished",
+        handlePreloaderFinished,
       );
 
-      window.clearTimeout(initialTimer);
+      window.clearTimeout(fallbackTimer);
     };
   }, []);
 
@@ -364,7 +385,7 @@ const NavBar = () => {
               key={link.href}
               href={link.href}
               onClick={(event) =>
-                handleNavigation(
+                scrollToSection(
                   event,
                   link.href.slice(1),
                 )
@@ -731,6 +752,7 @@ const InstagramIcon = () => (
       width="20"
       height="20"
       rx="5"
+      ry="5"
     />
 
     <circle
