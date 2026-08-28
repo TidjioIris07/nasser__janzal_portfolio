@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+
 import gsap from "gsap";
+
 import { useTranslations } from "next-intl";
 
 import Button from "./ui/Button";
+
 import LanguageSwitch from "./ui/LanguageSwitch";
+
 import { scrollToSection, showForm } from "@/utils/utils";
 
 const SCROLL_THRESHOLD = 40;
@@ -13,35 +17,32 @@ const SCROLL_THRESHOLD = 40;
 const NavBar = () => {
   const t = useTranslations("nav");
   const brand = useTranslations("brand");
+
   const navLinks = [
     { label: t("journey"), href: "#journey" },
     { label: t("impact"), href: "#impact" },
     { label: t("partnerships"), href: "#partnerships" },
     { label: t("services"), href: "#services" },
   ];
+
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  /*
-   * -------------------------------------------------------
-   * ANIMATION REFS
-   * -------------------------------------------------------
-   */
+  /* -------------------------------------------------------
+     ANIMATION REFS
+  ------------------------------------------------------- */
 
   const headerRef = useRef<HTMLElement>(null);
-  const navbarRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLAnchorElement>(null);
   const navRef = useRef<HTMLElement>(null);
-  const rightSideRef = useRef<HTMLDivElement>(null);
   const languageRef = useRef<HTMLDivElement>(null);
   const socialsRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
+  const mobileRightRef = useRef<HTMLDivElement>(null);
 
-  /*
-   * -------------------------------------------------------
-   * SCROLL STATE
-   * -------------------------------------------------------
-   */
+  /* -------------------------------------------------------
+     SCROLL STATE
+  ------------------------------------------------------- */
 
   useEffect(() => {
     const onScroll = () => {
@@ -59,31 +60,27 @@ const NavBar = () => {
     };
   }, []);
 
-  /*
-   * -------------------------------------------------------
-   * NAVBAR INTRO ANIMATION
-   * -------------------------------------------------------
-   */
+  /* -------------------------------------------------------
+     NAVBAR INTRO ANIMATION
+  ------------------------------------------------------- */
 
   useEffect(() => {
     const header = headerRef.current;
-    const navbar = navbarRef.current;
     const logo = logoRef.current;
     const nav = navRef.current;
-    const rightSide = rightSideRef.current;
     const language = languageRef.current;
     const socials = socialsRef.current;
     const cta = ctaRef.current;
+    const mobileRight = mobileRightRef.current;
 
     if (
       !header ||
-      !navbar ||
       !logo ||
       !nav ||
-      !rightSide ||
       !language ||
       !socials ||
-      !cta
+      !cta ||
+      !mobileRight
     ) {
       return;
     }
@@ -92,13 +89,18 @@ const NavBar = () => {
       "(prefers-reduced-motion: reduce)",
     ).matches;
 
-    /*
-     * The preloader is responsible for the first visual.
-     * Navbar waits until the preloader has completely
-     * disappeared.
-     */
+    let animationPlayed = false;
+    let ctx: gsap.Context | null = null;
+
+    /* -------------------------------------------------------
+       ANIMATE NAVBAR
+    ------------------------------------------------------- */
 
     const animateNavbar = () => {
+      if (animationPlayed) return;
+
+      animationPlayed = true;
+
       if (reduceMotion) {
         gsap.set(
           [
@@ -107,23 +109,22 @@ const NavBar = () => {
             language,
             socials,
             cta,
+            mobileRight,
           ],
           {
             clearProps: "all",
+            opacity: 1,
+            yPercent: 0,
           },
         );
 
         return;
       }
 
-      const ctx = gsap.context(() => {
+      ctx = gsap.context(() => {
         /*
-         * ---------------------------------------------------
-         * INITIAL STATE
-         * ---------------------------------------------------
-         *
-         * -0.5Y means approximately half of the element's
-         * own height upward.
+         * Initial state is also defined directly on the
+         * elements in JSX to prevent a flash before GSAP runs.
          */
 
         gsap.set(
@@ -133,6 +134,7 @@ const NavBar = () => {
             language,
             socials,
             cta,
+            mobileRight,
           ],
           {
             yPercent: -50,
@@ -140,23 +142,15 @@ const NavBar = () => {
           },
         );
 
-        /*
-         * ---------------------------------------------------
-         * NAVBAR REVEAL
-         * ---------------------------------------------------
-         *
-         * Each group enters individually.
-         */
-
         const timeline = gsap.timeline({
           defaults: {
             ease: "power3.out",
           },
         });
 
-        /*
-         * LOGO
-         */
+        /* ---------------------------------------------------
+           LOGO
+        --------------------------------------------------- */
 
         timeline.to(logo, {
           yPercent: 0,
@@ -164,9 +158,9 @@ const NavBar = () => {
           duration: 0.7,
         });
 
-        /*
-         * DESKTOP NAVIGATION
-         */
+        /* ---------------------------------------------------
+           DESKTOP NAVIGATION
+        --------------------------------------------------- */
 
         timeline.to(
           nav,
@@ -178,9 +172,9 @@ const NavBar = () => {
           "-=0.48",
         );
 
-        /*
-         * LANGUAGE
-         */
+        /* ---------------------------------------------------
+           LANGUAGE
+        --------------------------------------------------- */
 
         timeline.to(
           language,
@@ -192,9 +186,9 @@ const NavBar = () => {
           "-=0.42",
         );
 
-        /*
-         * SOCIAL ICONS
-         */
+        /* ---------------------------------------------------
+           SOCIAL ICONS
+        --------------------------------------------------- */
 
         timeline.to(
           socials,
@@ -206,9 +200,9 @@ const NavBar = () => {
           "-=0.42",
         );
 
-        /*
-         * CTA
-         */
+        /* ---------------------------------------------------
+           CTA
+        --------------------------------------------------- */
 
         timeline.to(
           cta,
@@ -219,16 +213,26 @@ const NavBar = () => {
           },
           "-=0.42",
         );
-      }, header);
 
-      return ctx;
+        /* ---------------------------------------------------
+           MOBILE RIGHT SIDE
+        --------------------------------------------------- */
+
+        timeline.to(
+          mobileRight,
+          {
+            yPercent: 0,
+            opacity: 1,
+            duration: 0.6,
+          },
+          "-=0.42",
+        );
+      }, header);
     };
 
-    /*
-     * -------------------------------------------------------
-     * WAIT FOR PRELOADER
-     * -------------------------------------------------------
-     */
+    /* -------------------------------------------------------
+       WAIT FOR PRELOADER
+    ------------------------------------------------------- */
 
     const handlePreloaderFinished = () => {
       animateNavbar();
@@ -243,22 +247,12 @@ const NavBar = () => {
      * Fallback:
      *
      * If the preloader has already finished before this
-     * listener was registered, reveal the navbar shortly
-     * after mount.
+     * component registered its listener, check whether the
+     * preloader is still present.
      */
 
     const fallbackTimer = window.setTimeout(() => {
-      const computedOpacity = gsap.getProperty(
-        logo,
-        "opacity",
-      );
-
-      if (computedOpacity === 1) return;
-
-      /*
-       * Only use fallback if the preloader itself is no
-       * longer visible.
-       */
+      if (animationPlayed) return;
 
       const preloader = document.querySelector(
         ".preloader-curtain",
@@ -269,7 +263,13 @@ const NavBar = () => {
       }
     }, 100);
 
+    /* -------------------------------------------------------
+       CLEANUP
+    ------------------------------------------------------- */
+
     return () => {
+      ctx?.revert();
+
       window.removeEventListener(
         "preloader:finished",
         handlePreloaderFinished,
@@ -279,11 +279,9 @@ const NavBar = () => {
     };
   }, []);
 
-  /*
-   * -------------------------------------------------------
-   * NAVIGATION
-   * -------------------------------------------------------
-   */
+  /* -------------------------------------------------------
+     NAVIGATION
+  ------------------------------------------------------- */
 
   const handleNavigation = (
     event: React.MouseEvent<HTMLAnchorElement>,
@@ -299,7 +297,6 @@ const NavBar = () => {
       className={`
         fixed inset-x-0 top-0 z-50
         transition-all duration-500 ease-out
-
         ${
           scrolled
             ? "border-b border-black/8 bg-white/80 shadow-sm shadow-black/4 backdrop-blur-2xl"
@@ -307,16 +304,14 @@ const NavBar = () => {
         }
       `}
     >
-      {/* =========================================================
+      {/* =====================================================
           MAIN NAVBAR
-      ========================================================= */}
+      ===================================================== */}
 
       <div
-        ref={navbarRef}
         className={`
           mx-auto flex w-full max-w-360 items-center justify-between
           transition-all duration-500 ease-out
-
           ${
             scrolled
               ? "px-6 py-3 md:px-12 lg:px-16"
@@ -324,9 +319,9 @@ const NavBar = () => {
           }
         `}
       >
-        {/* =======================================================
+        {/* ===================================================
             LOGO
-        ======================================================= */}
+        =================================================== */}
 
         <a
           ref={logoRef}
@@ -334,13 +329,16 @@ const NavBar = () => {
             setMenuOpen(false);
             scrollToSection(event, "#hero");
           }}
+          style={{
+            opacity: 0,
+            transform: "translateY(-50%)",
+          }}
           className={`
             group flex shrink-0 cursor-pointer items-center gap-1.5
             font-brand text-xl font-bold uppercase
             tracking-[-0.04em]
             transition-all duration-500
             md:text-2xl
-
             ${
               scrolled
                 ? "text-black"
@@ -355,18 +353,21 @@ const NavBar = () => {
               h-2 w-2 rounded-full
               transition-transform duration-300
               group-hover:scale-125
-
               ${scrolled ? "bg-black" : "bg-white"}
             `}
           />
         </a>
 
-        {/* =======================================================
+        {/* ===================================================
             DESKTOP NAVIGATION
-        ======================================================= */}
+        =================================================== */}
 
         <nav
           ref={navRef}
+          style={{
+            opacity: 0,
+            transform: "translateY(-50%)",
+          }}
           className="
             hidden
             items-center
@@ -392,7 +393,6 @@ const NavBar = () => {
               className={`
                 transition-colors
                 duration-300
-
                 ${
                   scrolled
                     ? "text-neutral-600 hover:text-black"
@@ -405,12 +405,11 @@ const NavBar = () => {
           ))}
         </nav>
 
-        {/* =======================================================
+        {/* ===================================================
             DESKTOP RIGHT SIDE
-        ======================================================= */}
+        =================================================== */}
 
         <div
-          ref={rightSideRef}
           className="
             hidden
             items-center
@@ -421,7 +420,13 @@ const NavBar = () => {
         >
           {/* LANGUAGE */}
 
-          <div ref={languageRef}>
+          <div
+            ref={languageRef}
+            style={{
+              opacity: 0,
+              transform: "translateY(-50%)",
+            }}
+          >
             <LanguageSwitch scrolled={scrolled} />
           </div>
 
@@ -429,6 +434,10 @@ const NavBar = () => {
 
           <div
             ref={socialsRef}
+            style={{
+              opacity: 0,
+              transform: "translateY(-50%)",
+            }}
             className="flex items-center gap-2"
           >
             {/* Instagram */}
@@ -449,7 +458,6 @@ const NavBar = () => {
                 transition-all
                 duration-300
                 hover:scale-105
-
                 ${
                   scrolled
                     ? "border-black/10 bg-white/60 text-black/70 hover:border-black/20 hover:bg-white hover:text-black"
@@ -478,7 +486,6 @@ const NavBar = () => {
                 transition-all
                 duration-300
                 hover:scale-105
-
                 ${
                   scrolled
                     ? "border-black/10 bg-white/60 text-black/70 hover:border-black/20 hover:bg-white hover:text-black"
@@ -492,7 +499,13 @@ const NavBar = () => {
 
           {/* CTA */}
 
-          <div ref={ctaRef}>
+          <div
+            ref={ctaRef}
+            style={{
+              opacity: 0,
+              transform: "translateY(-50%)",
+            }}
+          >
             <Button
               onClick={(event) => {
                 event.preventDefault();
@@ -504,11 +517,18 @@ const NavBar = () => {
           </div>
         </div>
 
-        {/* =======================================================
+        {/* ===================================================
             MOBILE RIGHT SIDE
-        ======================================================= */}
+        =================================================== */}
 
-        <div className="flex items-center gap-2 sm:hidden">
+        <div
+          ref={mobileRightRef}
+          style={{
+            opacity: 0,
+            transform: "translateY(-50%)",
+          }}
+          className="flex items-center gap-2 sm:hidden"
+        >
           {/* Language */}
 
           <LanguageSwitch scrolled={scrolled} />
@@ -537,7 +557,6 @@ const NavBar = () => {
               border
               transition-all
               duration-300
-
               ${
                 scrolled || menuOpen
                   ? "border-black/10 bg-white/60 text-black"
@@ -554,9 +573,9 @@ const NavBar = () => {
         </div>
       </div>
 
-      {/* =========================================================
+      {/* =====================================================
           MOBILE MENU
-      ========================================================= */}
+      ===================================================== */}
 
       <div
         className={`
@@ -570,13 +589,11 @@ const NavBar = () => {
           duration-500
           ease-[cubic-bezier(0.22,1,0.36,1)]
           sm:hidden
-
           ${
             menuOpen
               ? "visible max-h-[calc(100dvh-80px)] opacity-100"
               : "invisible max-h-0 opacity-0"
           }
-
           ${
             scrolled
               ? "border-black/6 bg-white"
@@ -589,7 +606,6 @@ const NavBar = () => {
             max-h-[calc(100dvh-80px)]
             overflow-y-auto
             overscroll-contain
-
             ${
               scrolled
                 ? "bg-white"
