@@ -1,6 +1,8 @@
+
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
+
 import { motion } from "framer-motion";
 
 const Videos = [
@@ -13,42 +15,61 @@ const Videos = [
 
 const VideoCarousel = () => {
   const scrollerRef = useRef<HTMLDivElement>(null);
+
   const isDragging = useRef(false);
   const startX = useRef(0);
   const startScrollLeft = useRef(0);
   const lastX = useRef(0);
   const lastTime = useRef(0);
   const velocity = useRef(0);
-  const [isPointerDown, setIsPointerDown] = useState(false);
 
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    // Touch already scrolls natively with momentum — only take over for mouse
+  const handlePointerDown = (
+    e: React.PointerEvent<HTMLDivElement>,
+  ) => {
+    // Touch already scrolls natively with momentum.
+    // Only take over dragging for mouse.
     if (e.pointerType !== "mouse") return;
+
     const el = scrollerRef.current;
+
     if (!el) return;
 
     isDragging.current = true;
-    setIsPointerDown(true);
+
     startX.current = e.clientX;
     startScrollLeft.current = el.scrollLeft;
+
     lastX.current = e.clientX;
     lastTime.current = performance.now();
+
     velocity.current = 0;
 
     el.style.scrollSnapType = "none";
+
     el.setPointerCapture(e.pointerId);
+    el.style.cursor = "grabbing";
   };
 
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerMove = (
+    e: React.PointerEvent<HTMLDivElement>,
+  ) => {
     if (!isDragging.current) return;
+
     const el = scrollerRef.current;
+
     if (!el) return;
 
     const now = performance.now();
     const dt = now - lastTime.current;
-    if (dt > 0) velocity.current = (e.clientX - lastX.current) / dt;
 
-    el.scrollLeft = startScrollLeft.current - (e.clientX - startX.current);
+    if (dt > 0) {
+      velocity.current =
+        (e.clientX - lastX.current) / dt;
+    }
+
+    el.scrollLeft =
+      startScrollLeft.current -
+      (e.clientX - startX.current);
 
     lastX.current = e.clientX;
     lastTime.current = now;
@@ -56,40 +77,55 @@ const VideoCarousel = () => {
 
   const endDrag = () => {
     if (!isDragging.current) return;
+
     isDragging.current = false;
-    setIsPointerDown(false);
 
     const el = scrollerRef.current;
+
     if (!el) return;
 
     el.style.scrollSnapType = "x mandatory";
+    el.style.cursor = "grab";
 
-    // Small coast in the flick direction, then scroll-snap settles on the nearest card
+    // Small coast in the flick direction,
+    // then scroll-snap settles on the nearest card.
     const flick = velocity.current * -180;
+
     if (Math.abs(flick) > 20) {
-      el.scrollBy({ left: flick, behavior: "smooth" });
+      el.scrollBy({
+        left: flick,
+        behavior: "smooth",
+      });
     }
   };
 
   return (
     <motion.div
+      dir="ltr"
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.15 }}
+      viewport={{
+        once: true,
+        amount: 0.15,
+      }}
       transition={{
         duration: 0.7,
         ease: [0.22, 1, 0.36, 1],
       }}
       className="mt-24 w-full"
+      style={{
+        direction: "ltr",
+      }}
     >
       <div
         ref={scrollerRef}
+        dir="ltr"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={endDrag}
         onPointerLeave={endDrag}
         onPointerCancel={endDrag}
-        className={`
+        className="
           flex
           w-full
           gap-5
@@ -100,21 +136,18 @@ const VideoCarousel = () => {
           overscroll-x-contain
           scrollbar-none
           select-none
+          cursor-grab
           sm:gap-6
-          ${isPointerDown ? "cursor-grabbing" : "cursor-grab"}
-        `}
+        "
+        style={{
+          direction: "ltr",
+          touchAction: "pan-x",
+          WebkitOverflowScrolling: "touch",
+        }}
       >
-        {Videos.map((name, index) => (
-          <motion.div
+        {Videos.map((name) => (
+          <div
             key={name}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{
-              duration: 0.55,
-              delay: index * 0.08,
-              ease: [0.22, 1, 0.36, 1],
-            }}
             className="
               group
               relative
@@ -152,7 +185,7 @@ const VideoCarousel = () => {
               autoPlay
               loop
               playsInline
-              preload="metadata"
+              preload="auto"
               draggable={false}
             />
 
@@ -169,7 +202,7 @@ const VideoCarousel = () => {
                 opacity-60
               "
             />
-          </motion.div>
+          </div>
         ))}
       </div>
     </motion.div>
