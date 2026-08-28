@@ -14,6 +14,7 @@ import { useTranslations } from "next-intl";
 const Form = () => {
   const t = useTranslations("form");
   const contact = useTranslations("contact");
+
   const [isOpen, setIsOpen] = useState(false);
   const [scopeOpen, setScopeOpen] = useState(false);
   const [scope, setScope] = useState("Brand Partnership");
@@ -108,6 +109,7 @@ const Form = () => {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
     setIsSubmitting(true);
     setSubmissionStatus(null);
 
@@ -117,9 +119,12 @@ const Form = () => {
     try {
       const response = await fetch("/api/enquiry", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(Object.fromEntries(formData)),
       });
+
       const result = (await response.json()) as { error?: string };
 
       if (!response.ok) {
@@ -170,7 +175,21 @@ const Form = () => {
   `;
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center overflow-y-auto p-4 sm:p-6">
+    <div
+      className="
+        fixed
+        inset-0
+        z-100
+        flex
+        items-center
+        justify-center
+        overflow-y-auto
+        px-6
+        py-4
+        sm:px-6
+        sm:py-6
+      "
+    >
       {/* Overlay */}
       <button
         type="button"
@@ -249,18 +268,22 @@ const Form = () => {
               text-2xl
               font-extrabold
               text-neutral-950
+              leading-tight
               sm:text-3xl
             "
           >
             {t("title")}
           </h3>
 
+          {/* Description hidden on mobile */}
           <p
             className="
               mt-1
+              hidden
               text-xs
               font-light
               text-neutral-500
+              sm:block
               sm:text-sm
             "
           >
@@ -461,10 +484,7 @@ const Form = () => {
               required
               rows={4}
               placeholder={t("messagePlaceholder")}
-              className={`
-                ${inputClasses}
-                resize-none
-              `}
+              className={`${inputClasses} resize-none`}
             />
           </div>
 
@@ -512,11 +532,11 @@ const Form = () => {
           )}
         </form>
 
-        {/* Contact Details */}
+        {/* Contact Details — hidden on mobile */}
         <div
           className="
             mt-6
-            flex
+            hidden
             flex-wrap
             items-center
             justify-between
@@ -526,6 +546,7 @@ const Form = () => {
             pt-6
             text-xs
             text-neutral-500
+            sm:flex
           "
         >
           <div className="flex items-center gap-2">
