@@ -1,8 +1,6 @@
-
 "use client";
 
-import { useRef } from "react";
-
+import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 
 const Videos = [
@@ -15,6 +13,7 @@ const Videos = [
 
 const VideoCarousel = () => {
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
   const isDragging = useRef(false);
   const startX = useRef(0);
@@ -22,6 +21,46 @@ const VideoCarousel = () => {
   const lastX = useRef(0);
   const lastTime = useRef(0);
   const velocity = useRef(0);
+
+  /*
+   * Play videos only when they are visible.
+   * This prevents mobile browsers from trying to
+   * load/play all 5 videos at the same time.
+   */
+  useEffect(() => {
+    const videos = videoRefs.current;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const video = entry.target as HTMLVideoElement;
+
+          if (entry.isIntersecting) {
+            video
+              .play()
+              .catch(() => {
+                // Mobile browsers may reject autoplay.
+                // Muted + playsInline should normally allow it.
+              });
+          } else {
+            video.pause();
+          }
+        });
+      },
+      {
+        root: scrollerRef.current,
+        threshold: 0.25,
+      },
+    );
+
+    videos.forEach((video) => {
+      if (video) observer.observe(video);
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   const handlePointerDown = (
     e: React.PointerEvent<HTMLDivElement>,
@@ -31,7 +70,6 @@ const VideoCarousel = () => {
     if (e.pointerType !== "mouse") return;
 
     const el = scrollerRef.current;
-
     if (!el) return;
 
     isDragging.current = true;
@@ -41,13 +79,12 @@ const VideoCarousel = () => {
 
     lastX.current = e.clientX;
     lastTime.current = performance.now();
-
     velocity.current = 0;
 
     el.style.scrollSnapType = "none";
+    el.style.cursor = "grabbing";
 
     el.setPointerCapture(e.pointerId);
-    el.style.cursor = "grabbing";
   };
 
   const handlePointerMove = (
@@ -56,7 +93,6 @@ const VideoCarousel = () => {
     if (!isDragging.current) return;
 
     const el = scrollerRef.current;
-
     if (!el) return;
 
     const now = performance.now();
@@ -81,7 +117,6 @@ const VideoCarousel = () => {
     isDragging.current = false;
 
     const el = scrollerRef.current;
-
     if (!el) return;
 
     el.style.scrollSnapType = "x mandatory";
@@ -145,7 +180,7 @@ const VideoCarousel = () => {
           WebkitOverflowScrolling: "touch",
         }}
       >
-        {Videos.map((name) => (
+        {Videos.map((name, index) => (
           <div
             key={name}
             className="
@@ -171,6 +206,9 @@ const VideoCarousel = () => {
             "
           >
             <video
+              ref={(video) => {
+                videoRefs.current[index] = video;
+              }}
               src={`/videos/${encodeURIComponent(name)}.mp4`}
               className="
                 h-full
@@ -182,11 +220,19 @@ const VideoCarousel = () => {
                 group-hover:scale-[1.02]
               "
               muted
-              autoPlay
-              loop
               playsInline
-              preload="auto"
+              loop
+              preload="metadata"
+              autoPlay
+              controls={false}
               draggable={false}
+              onLoadedData={(e) => {
+                const video = e.currentTarget;
+
+                video.play().catch(() => {
+                  // Ignore autoplay rejection.
+                });
+              }}
             />
 
             <div
