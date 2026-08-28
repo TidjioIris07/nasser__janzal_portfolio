@@ -163,9 +163,9 @@ const VideoCarousel = () => {
               bg-neutral-950
               shadow-[0_8px_30px_rgba(0,0,0,0.06)]
               sm:w-[42vw]
-              sm:max-w-[280px]
+              sm:max-w-70
               md:w-[30vw]
-              md:max-w-[280px]
+              md:max-w-70
               lg:w-[calc((100%-96px)/5)]
               lg:max-w-none
             "
