@@ -15,6 +15,7 @@ export default function Preloader({
 }: PreloaderProps) {
   const t = useTranslations("preloader");
   const brand = useTranslations("brand");
+
   const curtainRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
@@ -42,38 +43,55 @@ export default function Preloader({
       !progress ||
       !progressText
     ) {
+      document.body.style.overflow = "";
       return;
     }
+
+    let finished = false;
+
+    const finishPreloader = () => {
+      if (finished) return;
+
+      finished = true;
+
+      setVisible(false);
+      document.body.style.overflow = "";
+
+      window.dispatchEvent(new Event("preloader:finished"));
+      onFinish?.();
+    };
+
+    /*
+     * SAFETY FALLBACK
+     * ---------------------------------------------
+     * If GSAP or Safari fails to complete the
+     * animation for any reason, never leave the
+     * preloader covering the website indefinitely.
+     */
+    const fallbackTimer = window.setTimeout(() => {
+      finishPreloader();
+    }, 5000);
 
     const ctx = gsap.context(() => {
       const progressValue = { value: 0 };
 
-      /*
-       * -------------------------------------------------------
-       * INITIAL STATES
-       * -------------------------------------------------------
-       */
-
-      // Full black screen.
+      // Initial states
       gsap.set(curtain, {
         yPercent: 0,
       });
 
-      // NASSER enters from below, blurred and invisible.
       gsap.set(title, {
         y: 70,
         opacity: 0,
         filter: "blur(18px)",
       });
 
-      // Subtitle follows slightly behind.
       gsap.set(subtitle, {
         y: 25,
         opacity: 0,
         filter: "blur(8px)",
       });
 
-      // Progress starts empty.
       gsap.set(progress, {
         scaleX: 0,
         transformOrigin: "left center",
@@ -83,12 +101,7 @@ export default function Preloader({
         opacity: 1,
       });
 
-      /*
-       * -------------------------------------------------------
-       * INTRO
-       * -------------------------------------------------------
-       */
-
+      // Intro
       const intro = gsap.timeline();
 
       intro.to(title, {
@@ -111,12 +124,7 @@ export default function Preloader({
         "-=0.65",
       );
 
-      /*
-       * -------------------------------------------------------
-       * PROGRESS
-       * -------------------------------------------------------
-       */
-
+      // Progress
       const loading = gsap.to(progressValue, {
         value: 100,
         duration: 2.4,
@@ -133,19 +141,13 @@ export default function Preloader({
         },
       });
 
-      /*
-       * -------------------------------------------------------
-       * AFTER LOADING
-       * -------------------------------------------------------
-       */
-
+      // After loading
       loading.then(() => {
+        if (finished) return;
+
         const outro = gsap.timeline();
 
-        /*
-         * Hide subtitle + progress.
-         */
-
+        // Hide subtitle + progress
         outro.to(
           [subtitle, progressWrap],
           {
@@ -157,12 +159,7 @@ export default function Preloader({
           },
         );
 
-        /*
-         * ---------------------------------------------------
-         * MERGE NASSER INTO NAVBAR
-         * ---------------------------------------------------
-         */
-
+        // Merge NASSER into navbar
         outro.add(() => {
           const target = document.querySelector(
             "[data-preloader-logo]",
@@ -201,43 +198,29 @@ export default function Preloader({
             scaleY,
             duration: 0.99,
             ease: "power3.inOut",
+
             onStart: () => {
               onLogoMerge?.();
             },
           });
         });
 
-        /*
-         * ---------------------------------------------------
-         * BOTTOM → TOP
-         * ---------------------------------------------------
-         *
-         * The entire black curtain moves upward.
-         *
-         * This reveals the page from the bottom first.
-         */
+        // Bottom → top curtain reveal
+        outro.to(curtain, {
+          yPercent: -100,
+          duration: 1.5,
+          ease: "power4.inOut",
 
-        outro.to(
-          curtain,
-          {
-            yPercent: -100,
-            duration: 1.5,
-            ease: "power4.inOut",
-
-            onComplete: () => {
-              setVisible(false);
-              document.body.style.overflow = "";
-
-              window.dispatchEvent(new Event("preloader:finished"));
-
-              onFinish?.();
-            },
+          onComplete: () => {
+            window.clearTimeout(fallbackTimer);
+            finishPreloader();
           },
-        );
+        });
       });
     }, curtainRef);
 
     return () => {
+      window.clearTimeout(fallbackTimer);
       ctx.revert();
       document.body.style.overflow = "";
     };
@@ -254,7 +237,8 @@ export default function Preloader({
         inset-0
         z-999
         flex
-        h-100dvh
+        min-h-screen
+        h-100vh
         w-screen
         flex-col
         justify-between
@@ -270,16 +254,10 @@ export default function Preloader({
         transform: "translate3d(0, 0, 0)",
       }}
     >
-      {/* =====================================================
-          TOP SPACER
-      ====================================================== */}
-
+      {/* TOP SPACER */}
       <div className="h-16 w-full shrink-0 sm:h-24" />
 
-      {/* =====================================================
-          CENTER BRAND
-      ====================================================== */}
-
+      {/* CENTER BRAND */}
       <div
         className="
           pointer-events-none
@@ -293,7 +271,6 @@ export default function Preloader({
       >
         <div className="inline-flex flex-col items-end">
           {/* NASSER */}
-
           <h1
             ref={titleRef}
             className="
@@ -305,15 +282,13 @@ export default function Preloader({
               tracking-[-0.04em]
             "
             style={{
-              willChange:
-                "transform, opacity, filter",
+              willChange: "transform, opacity, filter",
             }}
           >
             {brand("name")}
           </h1>
 
           {/* SUBTITLE */}
-
           <p
             ref={subtitleRef}
             className="
@@ -331,8 +306,7 @@ export default function Preloader({
               md:text-sm
             "
             style={{
-              willChange:
-                "transform, opacity, filter",
+              willChange: "transform, opacity, filter",
             }}
           >
             {t("subtitle")}
@@ -340,24 +314,21 @@ export default function Preloader({
         </div>
       </div>
 
-      {/* =====================================================
-          PROGRESS
-      ====================================================== */}
-
+      {/* PROGRESS */}
       <div
         ref={progressWrapRef}
         className="
           relative
           z-20
           mt-auto
+          hidden
           w-full
           shrink-0
           px-5
           pb-7
+          md:block
           sm:px-10
           sm:pb-9
-          hidden
-          md:block
         "
       >
         <div
