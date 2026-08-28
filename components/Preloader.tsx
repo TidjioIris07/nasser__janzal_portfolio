@@ -49,27 +49,13 @@ export default function Preloader({
       return;
     }
 
-    /*
-     * Disable heavy blur effects on mobile.
-     *
-     * WebKit/Safari can be especially expensive when animating
-     * CSS filters on large text during the intro sequence.
-     */
     const isMobile = window.matchMedia(
       "(max-width: 767px)",
     ).matches;
 
-    const titleInitialState = {
-      y: 70,
-      opacity: 0,
-      ...(isMobile ? {} : { filter: "blur(18px)" }),
-    };
-
-    const subtitleInitialState = {
-      y: 25,
-      opacity: 0,
-      ...(isMobile ? {} : { filter: "blur(8px)" }),
-    };
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
 
     let finished = false;
 
@@ -77,7 +63,6 @@ export default function Preloader({
       if (finished) return;
 
       finished = true;
-      setVisible(false);
 
       document.body.style.overflow = "";
 
@@ -86,53 +71,136 @@ export default function Preloader({
       );
 
       onFinish?.();
+
+      setVisible(false);
     };
 
-    /* -------------------------------------------------------
-       SAFETY FALLBACK
-    ------------------------------------------------------- */
+    /*
+     * -------------------------------------------------------
+     * SAFETY FALLBACK
+     * -------------------------------------------------------
+     */
 
     const fallbackTimer = window.setTimeout(() => {
       finishPreloader();
     }, 5000);
 
-    const ctx = gsap.context(() => {
-      const progressValue = { value: 0 };
+    /*
+     * -------------------------------------------------------
+     * GSAP CONTEXT
+     * -------------------------------------------------------
+     */
 
-      /* -------------------------------------------------------
-         INITIAL STATES
-      ------------------------------------------------------- */
+    const ctx = gsap.context(() => {
+      /*
+       * -----------------------------------------------------
+       * INITIAL STATES
+       * -----------------------------------------------------
+       *
+       * These states are also defined directly in JSX.
+       * This prevents any flash before GSAP initializes.
+       */
 
       gsap.set(curtain, {
         yPercent: 0,
       });
 
-      gsap.set(title, titleInitialState);
+      gsap.set(title, {
+        y: 70,
+        opacity: 0,
+        ...(isMobile ? {} : { filter: "blur(18px)" }),
+      });
 
-      gsap.set(subtitle, subtitleInitialState);
+      gsap.set(subtitle, {
+        y: 25,
+        opacity: 0,
+        ...(isMobile ? {} : { filter: "blur(8px)" }),
+      });
+
+      gsap.set(progressWrap, {
+        opacity: 0,
+        y: 15,
+      });
 
       gsap.set(progress, {
         scaleX: 0,
         transformOrigin: "left center",
       });
 
-      gsap.set(progressWrap, {
-        opacity: 1,
+      /*
+       * -----------------------------------------------------
+       * REDUCED MOTION
+       * -----------------------------------------------------
+       */
+
+      if (reduceMotion) {
+        gsap.set(title, {
+          clearProps: "all",
+          opacity: 1,
+          y: 0,
+        });
+
+        gsap.set(subtitle, {
+          clearProps: "all",
+          opacity: 1,
+          y: 0,
+        });
+
+        gsap.set(progressWrap, {
+          clearProps: "all",
+          opacity: 1,
+          y: 0,
+        });
+
+        gsap.set(progress, {
+          scaleX: 1,
+        });
+
+        progressText.textContent = "100%";
+
+        gsap.to(curtain, {
+          yPercent: -100,
+          duration: 0.5,
+          ease: "power2.inOut",
+          onComplete: () => {
+            window.clearTimeout(fallbackTimer);
+            finishPreloader();
+          },
+        });
+
+        return;
+      }
+
+      /*
+       * -----------------------------------------------------
+       * INTRO TIMELINE
+       * -----------------------------------------------------
+       */
+
+      const intro = gsap.timeline({
+        defaults: {
+          ease: "power3.out",
+        },
       });
 
-      /* -------------------------------------------------------
-         INTRO
-      ------------------------------------------------------- */
-
-      const intro = gsap.timeline();
+      /*
+       * -----------------------------------------------------
+       * TITLE
+       * -----------------------------------------------------
+       */
 
       intro.to(title, {
         y: 0,
         opacity: 1,
         ...(isMobile ? {} : { filter: "blur(0px)" }),
         duration: 1.1,
-        ease: "power3.out",
       });
+
+      /*
+       * -----------------------------------------------------
+       * SUBTITLE
+       * -----------------------------------------------------
+       */
 
       intro.to(
         subtitle,
@@ -141,19 +209,43 @@ export default function Preloader({
           opacity: 1,
           ...(isMobile ? {} : { filter: "blur(0px)" }),
           duration: 0.8,
-          ease: "power3.out",
         },
         "-=0.65",
       );
 
-      /* -------------------------------------------------------
-         PROGRESS
-      ------------------------------------------------------- */
+      /*
+       * -----------------------------------------------------
+       * PROGRESS CONTAINER
+       * -----------------------------------------------------
+       */
+
+      intro.to(
+        progressWrap,
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.5,
+          ease: "power2.out",
+        },
+        "-=0.35",
+      );
+
+      /*
+       * -----------------------------------------------------
+       * PROGRESS ANIMATION
+       * -----------------------------------------------------
+       */
+
+      const progressValue = {
+        value: 0,
+      };
 
       const loading = gsap.to(progressValue, {
         value: 100,
         duration: 2.4,
+        delay: 0.05,
         ease: "power2.out",
+
         onUpdate: () => {
           const value = Math.round(progressValue.value);
 
@@ -165,16 +257,23 @@ export default function Preloader({
         },
       });
 
-      /* -------------------------------------------------------
-         AFTER LOADING
-      ------------------------------------------------------- */
+      /*
+       * -----------------------------------------------------
+       * AFTER LOADING
+       * -----------------------------------------------------
+       */
 
       loading.then(() => {
         if (finished) return;
 
         const outro = gsap.timeline();
 
-        /* Hide subtitle + progress */
+        /*
+         * ---------------------------------------------------
+         * HIDE SUBTITLE + PROGRESS
+         * ---------------------------------------------------
+         */
+
         outro.to(
           [subtitle, progressWrap],
           {
@@ -186,16 +285,20 @@ export default function Preloader({
           },
         );
 
-        /* -------------------------------------------------------
-           MERGE NASSER INTO NAVBAR
-        ------------------------------------------------------- */
+        /*
+         * ---------------------------------------------------
+         * MERGE NASSER INTO NAVBAR
+         * ---------------------------------------------------
+         */
 
         outro.add(() => {
           const target = document.querySelector(
             "[data-preloader-logo]",
           ) as HTMLElement | null;
 
-          if (!target) return;
+          if (!target) {
+            return;
+          }
 
           const titleRect =
             title.getBoundingClientRect();
@@ -233,6 +336,16 @@ export default function Preloader({
             targetRect.height /
             titleRect.height;
 
+          /*
+           * Notify Navbar that the logo merge is starting.
+           */
+
+          onLogoMerge?.();
+
+          /*
+           * Merge animation.
+           */
+
           gsap.to(title, {
             x,
             y,
@@ -240,42 +353,47 @@ export default function Preloader({
             scaleY,
             duration: 0.99,
             ease: "power3.inOut",
-            onStart: () => {
-              onLogoMerge?.();
-            },
           });
         });
 
-        /* -------------------------------------------------------
-           BOTTOM → TOP CURTAIN REVEAL
-        ------------------------------------------------------- */
+        /*
+         * ---------------------------------------------------
+         * CURTAIN REVEAL
+         * ---------------------------------------------------
+         */
 
-        outro.to(curtain, {
-          yPercent: -100,
-          duration: 1.5,
-          ease: "power4.inOut",
-          onComplete: () => {
-            window.clearTimeout(fallbackTimer);
-            finishPreloader();
+        outro.to(
+          curtain,
+          {
+            yPercent: -100,
+            duration: 1.5,
+            ease: "power4.inOut",
+            onComplete: () => {
+              window.clearTimeout(fallbackTimer);
+              finishPreloader();
+            },
           },
-        });
+          "+=0",
+        );
       });
     }, curtainRef);
 
-    /* -------------------------------------------------------
-       CLEANUP
-    ------------------------------------------------------- */
+    /*
+     * -------------------------------------------------------
+     * CLEANUP
+     * -------------------------------------------------------
+     */
 
     return () => {
       window.clearTimeout(fallbackTimer);
-
       ctx.revert();
-
       document.body.style.overflow = "";
     };
   }, [onFinish, onLogoMerge]);
 
-  if (!visible) return null;
+  if (!visible) {
+    return null;
+  }
 
   return (
     <div
@@ -303,10 +421,16 @@ export default function Preloader({
         transform: "translate3d(0, 0, 0)",
       }}
     >
-      {/* TOP SPACER */}
+      {/* =====================================================
+          TOP SPACER
+      ====================================================== */}
+
       <div className="h-16 w-full shrink-0 sm:h-24" />
 
-      {/* CENTER BRAND */}
+      {/* =====================================================
+          CENTER BRAND
+      ====================================================== */}
+
       <div
         className="
           pointer-events-none
@@ -319,7 +443,10 @@ export default function Preloader({
         "
       >
         <div className="inline-flex flex-col items-end">
-          {/* NASSER */}
+          {/* =================================================
+              NASSER
+          ================================================== */}
+
           <h1
             ref={titleRef}
             className="
@@ -331,13 +458,25 @@ export default function Preloader({
               tracking-[-0.04em]
             "
             style={{
+              /*
+               * IMPORTANT:
+               * Must match GSAP's initial state.
+               *
+               * This guarantees the title remains hidden
+               * before useEffect / GSAP executes.
+               */
+              opacity: 0,
+              transform: "translateY(70px)",
               willChange: "transform, opacity",
             }}
           >
             {brand("name")}
           </h1>
 
-          {/* SUBTITLE */}
+          {/* =================================================
+              SUBTITLE
+          ================================================== */}
+
           <p
             ref={subtitleRef}
             className="
@@ -355,6 +494,12 @@ export default function Preloader({
               md:text-sm
             "
             style={{
+              /*
+               * IMPORTANT:
+               * Must match GSAP's initial state.
+               */
+              opacity: 0,
+              transform: "translateY(25px)",
               willChange: "transform, opacity",
             }}
           >
@@ -363,7 +508,10 @@ export default function Preloader({
         </div>
       </div>
 
-      {/* PROGRESS */}
+      {/* =====================================================
+          PROGRESS
+      ====================================================== */}
+
       <div
         ref={progressWrapRef}
         className="
@@ -379,6 +527,16 @@ export default function Preloader({
           sm:px-10
           sm:pb-9
         "
+        style={{
+          /*
+           * IMPORTANT:
+           * The whole progress section is hidden from the
+           * very first render.
+           */
+          opacity: 0,
+          transform: "translateY(15px)",
+          willChange: "transform, opacity",
+        }}
       >
         <div
           className="
@@ -422,6 +580,17 @@ export default function Preloader({
               origin-left
               bg-white
             "
+            style={{
+              /*
+               * IMPORTANT:
+               * The progress bar itself must also start at 0.
+               * Otherwise the white bar can briefly appear before
+               * GSAP applies scaleX(0).
+               */
+              transform: "scaleX(0)",
+              transformOrigin: "left center",
+              willChange: "transform",
+            }}
           />
         </div>
       </div>
